@@ -1,9 +1,12 @@
 // ====== CONFIG: FILL THESE AFTER DEPLOYING CONTRACTS ======
+
 const VULNERABLE_ORACLE_ADDRESS = "0x421644DC139096d9FBe89949926F1564b93C7C7F";
+
 const VICTIM_CONTRACT_ADDRESS = "0xa6551042e0F3e9455ae7BBCE7Bb2708F5720ed69";
+
 const ATTACKER_CONTRACT_ADDRESS = "0x304E58107bb744196cF2cF3E71037bfcFdc1B32C";
 
-// Match your Solidity functions:
+// ====== ABIs ======
 const vulnerableOracleAbi = [
   "function setPrice(uint256 _price) public",
   "function getPrice() public view returns (uint256)",
@@ -11,11 +14,13 @@ const vulnerableOracleAbi = [
 
 const victimAbi = [
   "function buyTokens() public payable",
+  "function sellTokens(uint256 tokenAmount) public", // Needed for drain
   "function balances(address owner) public view returns (uint256)",
 ];
 
 const attackerAbi = [
   "function attack(uint256 fakePrice) public payable",
+  "function drainAndWithdraw() public", // The Cash Out function
   "function manipulatePrice(uint256 newPrice) public",
 ];
 
@@ -27,207 +32,168 @@ let currentAccount = null;
 // ====== HELPERS ======
 async function connectWallet() {
   if (!window.ethereum) {
-    alert("MetaMask not detected. Please install MetaMask.");
+    alert("MetaMask not detected.");
     return;
   }
-
   provider = new ethers.BrowserProvider(window.ethereum);
-
   try {
-    const accounts = await window.ethereum.request({
-      method: "eth_requestAccounts",
-    });
+    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
     currentAccount = accounts[0];
     signer = await provider.getSigner();
 
-    const btn = document.getElementById("connectBtn");
-    if (btn) {
-      btn.textContent =
-        "Connected: " +
-        currentAccount.slice(0, 6) +
-        "..." +
-        currentAccount.slice(-4);
-    }
+    document.getElementById("connectBtn").textContent =
+        currentAccount.slice(0, 6) + "..." + currentAccount.slice(-4);
 
     await refreshAllViews();
   } catch (err) {
-    console.error("Wallet connection failed:", err);
+    console.error("Connection error:", err);
   }
 }
 
-function getOracleContract(readOnly = false) {
+function getContract(address, abi, readOnly = false) {
   if (!provider) provider = new ethers.BrowserProvider(window.ethereum);
-  const runner = readOnly ? provider : signer ?? provider;
-  return new ethers.Contract(
-    VULNERABLE_ORACLE_ADDRESS,
-    vulnerableOracleAbi,
-    runner
-  );
-}
-
-function getVictimContract(readOnly = false) {
-  if (!provider) provider = new ethers.BrowserProvider(window.ethereum);
-  const runner = readOnly ? provider : signer ?? provider;
-  return new ethers.Contract(VICTIM_CONTRACT_ADDRESS, victimAbi, runner);
-}
-
-function getAttackerContract() {
-  if (!provider) provider = new ethers.BrowserProvider(window.ethereum);
-  const runner = signer ?? provider;
-  return new ethers.Contract(ATTACKER_CONTRACT_ADDRESS, attackerAbi, runner);
+  const runner = readOnly ? provider : signer;
+  return new ethers.Contract(address, abi, runner);
 }
 
 // ====== UI ACTIONS ======
 async function loadOraclePrice() {
   try {
-    const oracle = getOracleContract(true);
-    const price = await oracle.getPrice();
+    const c = getContract(VULNERABLE_ORACLE_ADDRESS, vulnerableOracleAbi, true);
+    const price = await c.getPrice();
     document.getElementById("oraclePrice").textContent = price.toString();
-  } catch (err) {
-    console.error("Failed to load oracle price:", err);
-    document.getElementById("oraclePrice").textContent = "error";
-  }
-}
-
-async function updateOraclePrice() {
-  if (!signer) {
-    alert("Connect wallet first.");
-    return;
-  }
-
-  const input = document.getElementById("fakePriceInput");
-  const value = input.value.trim();
-  if (!value) {
-    alert("Enter a fake price.");
-    return;
-  }
-
-  try {
-    const oracle = getOracleContract(false);
-    const tx = await oracle.setPrice(value);
-    await tx.wait();
-    await loadOraclePrice();
-  } catch (err) {
-    console.error("Failed to set price:", err);
-    alert("Failed to set price. See console.");
-  }
+  } catch (err) { console.error(err); }
 }
 
 async function loadTokenBalance() {
-  if (!currentAccount) {
-    document.getElementById("tokenBalance").textContent = "0";
-    return;
-  }
-
+  if (!currentAccount) return;
   try {
-    const victim = getVictimContract(true);
-    const bal = await victim.balances(currentAccount);
+    const c = getContract(VICTIM_CONTRACT_ADDRESS, victimAbi, true);
+    const bal = await c.balances(currentAccount);
     document.getElementById("tokenBalance").textContent = bal.toString();
-  } catch (err) {
-    console.error("Failed to load token balance:", err);
-  }
+  } catch (err) { console.error(err); }
+}
+
+async function loadAttackerBalance() {
+  try {
+    // We check the balance of the ATTACKER CONTRACT inside the VICTIM system
+    const c = getContract(VICTIM_CONTRACT_ADDRESS, victimAbi, true);
+    const bal = await c.balances(ATTACKER_CONTRACT_ADDRESS);
+    document.getElementById("attackerBalance").textContent = bal.toString();
+  } catch (err) { console.error(err); }
+}
+
+async function updateOraclePrice() {
+  if (!signer) return alert("Connect Wallet");
+  const price = document.getElementById("fakePriceInput").value;
+  try {
+    const c = getContract(VULNERABLE_ORACLE_ADDRESS, vulnerableOracleAbi);
+    const tx = await c.setPrice(price);
+    await tx.wait();
+    await loadOraclePrice();
+  } catch (err) { alert("Failed. See console."); console.error(err); }
 }
 
 async function buyTokens() {
-  if (!signer || !currentAccount) {
-    alert("Connect wallet first.");
-    return;
-  }
-
-  const ethInput = document.getElementById("ethAmountInput");
-  const amountStr = ethInput.value.trim();
-  if (!amountStr || Number(amountStr) <= 0) {
-    alert("Enter an ETH amount.");
-    return;
-  }
-
+  if (!signer) return alert("Connect Wallet");
+  const amount = document.getElementById("ethAmountInput").value;
   try {
-    const victim = getVictimContract(false);
-    const value = ethers.parseEther(amountStr);
-    const tx = await victim.buyTokens({ value });
+    const c = getContract(VICTIM_CONTRACT_ADDRESS, victimAbi);
+    const tx = await c.buyTokens({ value: ethers.parseEther(amount) });
     await tx.wait();
     await loadTokenBalance();
-  } catch (err) {
-    console.error("Failed to buy tokens:", err);
-    alert("Failed to buy tokens. See console.");
-  }
+  } catch (err) { alert("Failed. See console."); console.error(err); }
 }
 
 async function runAttack() {
-  if (!signer || !currentAccount) {
-    alert("Connect wallet first.");
-    return;
-  }
-
-  const fakePriceInput = document.getElementById("attackPriceInput");
-  const ethInput = document.getElementById("attackEthInput");
-  const fakePrice = fakePriceInput.value.trim();
-  const ethAmount = ethInput.value.trim();
-
-  if (!fakePrice) {
-    alert("Enter a fake price for the attack.");
-    return;
-  }
-  if (!ethAmount || Number(ethAmount) <= 0) {
-    alert("Enter an ETH amount for the attack.");
-    return;
-  }
-
+  if (!signer) return alert("Connect Wallet");
+  const price = document.getElementById("attackPriceInput").value;
+  const ethAmt = document.getElementById("attackEthInput").value;
   try {
-    const attacker = getAttackerContract();
-    const value = ethers.parseEther(ethAmount);
-    const tx = await attacker.attack(fakePrice, { value });
+    const c = getContract(ATTACKER_CONTRACT_ADDRESS, attackerAbi);
+    const tx = await c.attack(price, { value: ethers.parseEther(ethAmt) });
     await tx.wait();
-    await loadOraclePrice();
-    await loadTokenBalance();
-    alert("Attack executed. Check oracle price and token balance.");
-  } catch (err) {
-    console.error("Attack failed:", err);
-    alert("Attack failed. See console.");
+    await refreshAllViews();
+    alert("Attack Executed! Check Attacker Loot.");
+  } catch (err) { alert("Attack Failed. See console."); console.error(err); }
+}
+
+async function cashOut() {
+    if (!signer) return alert("Connect Wallet");
+    try {
+        const c = getContract(ATTACKER_CONTRACT_ADDRESS, attackerAbi);
+        // This calls the function that sells tokens and sends ETH to you
+        const tx = await c.drainAndWithdraw();
+        await tx.wait();
+        await refreshAllViews();
+        alert("Funds Drained! Check your Wallet Balance.");
+    } catch(err) {
+        alert("Cash Out Failed. Did you implement drainAndWithdraw in solidity?");
+        console.error(err);
+    }
+}
+
+// ====== SCANNER LOGIC ======
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        // Dump file content into textarea
+        document.getElementById("codeInput").value = e.target.result;
+    };
+    reader.readAsText(file);
+}
+
+function analyzeCode() {
+  const code = document.getElementById("codeInput").value;
+  const resultBox = document.getElementById("scanResult");
+  const msgBox = document.getElementById("scanMessage");
+
+  resultBox.style.display = "block";
+  let findings = [];
+
+  // Regex Patterns for Vulnerabilities
+  const setPriceRegex = /function\s+setPrice\s*\([^)]*\)\s*public/;
+  const authRegex = /onlyOwner|require\(\s*msg\.sender/;
+
+  if (setPriceRegex.test(code) && !authRegex.test(code)) {
+    findings.push("CRITICAL: 'setPrice' is public without 'onlyOwner'. Oracle is easily manipulated.");
+  }
+  if (code.includes(".getPrice()") && !code.includes("AggregatorV3Interface")) {
+    findings.push("HIGH: Uses insecure/custom oracle instead of Chainlink.");
+  }
+  if (code.includes("* price")) {
+    findings.push("INFO: Price used directly in multiplication. Check for overflow/decimals.");
+  }
+
+  if (findings.length > 0) {
+    msgBox.innerHTML = findings.join("<br><br>");
+    resultBox.style.borderColor = "#ef4444";
+    msgBox.style.color = "#fca5a5";
+  } else {
+    msgBox.textContent = "No obvious oracle vulnerabilities found.";
+    resultBox.style.borderColor = "#22c55e";
+    msgBox.style.color = "#4ade80";
   }
 }
 
-// ====== INIT ======
 async function refreshAllViews() {
   await loadOraclePrice();
   await loadTokenBalance();
+  await loadAttackerBalance();
 }
 
+// ====== INIT ======
 window.addEventListener("DOMContentLoaded", () => {
-  document
-    .getElementById("connectBtn")
-    .addEventListener("click", connectWallet);
-  document
-    .getElementById("setPriceBtn")
-    .addEventListener("click", updateOraclePrice);
-  document
-    .getElementById("buyTokensBtn")
-    .addEventListener("click", buyTokens);
-  document
-    .getElementById("runAttackBtn")
-    .addEventListener("click", runAttack);
+  document.getElementById("connectBtn").addEventListener("click", connectWallet);
+  document.getElementById("setPriceBtn").addEventListener("click", updateOraclePrice);
+  document.getElementById("buyTokensBtn").addEventListener("click", buyTokens);
+  document.getElementById("runAttackBtn").addEventListener("click", runAttack);
+  document.getElementById("cashOutBtn").addEventListener("click", cashOut);
 
-  // Try to connect silently if MetaMask already authorized
-  if (window.ethereum) {
-    window.ethereum
-      .request({ method: "eth_accounts" })
-      .then(async (accounts) => {
-        if (accounts && accounts.length > 0) {
-          currentAccount = accounts[0];
-          provider = new ethers.BrowserProvider(window.ethereum);
-          signer = await provider.getSigner();
-          document.getElementById("connectBtn").textContent =
-            "Connected: " +
-            currentAccount.slice(0, 6) +
-            "..." +
-            currentAccount.slice(-4);
-        }
-        await refreshAllViews();
-      })
-      .catch((err) => {
-        console.error("Silent connect failed:", err);
-      });
-  } else {
-    loadOraclePrice(); // still try to load (will likely fail until provider set)
-  }
+  // Scanner Listeners
+  document.getElementById("scanBtn").addEventListener("click", analyzeCode);
+  document.getElementById("fileUpload").addEventListener("change", handleFileUpload);
 });

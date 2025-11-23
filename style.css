@@ -1,6 +1,7 @@
-*,
-*::before,
-*::after {
+/* =========================================
+   1. GLOBAL RESET & THEME
+   ========================================= */
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
@@ -9,18 +10,16 @@ body {
   min-height: 100vh;
   background: radial-gradient(circle at top, #020617 0, #000 55%, #020617 100%);
   color: #e5e7eb;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, Helvetica, Arial, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .page {
   max-width: 1100px;
   margin: 0 auto;
   padding: 20px 16px 32px;
-  position: relative;
 }
 
-/* Faint grid */
+/* Hacker Grid Background Pattern */
 .hacker-grid {
   background-image: radial-gradient(
     circle at 1px 1px,
@@ -30,6 +29,9 @@ body {
   background-size: 22px 22px;
 }
 
+/* =========================================
+   2. HEADER & LOGO
+   ========================================= */
 .header {
   display: flex;
   align-items: center;
@@ -72,22 +74,79 @@ body {
   color: #94a3b8;
 }
 
-.grid {
+/* =========================================
+   3. NAVIGATION TABS (NEW)
+   ========================================= */
+.nav-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #1e293b;
+  padding-bottom: 12px;
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #e5e7eb;
+}
+
+.nav-btn.active {
+  background: #1e293b;
+  color: #22c55e;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* =========================================
+   4. LAYOUT & ANIMATION
+   ========================================= */
+.tab-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.grid-layout {
   display: grid;
   gap: 16px;
 }
 
+/* Responsive: 2 columns on larger screens */
 @media (min-width: 768px) {
-  .grid {
+  .grid-layout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   5. CARDS & COMPONENTS
+   ========================================= */
 .card {
   background: rgba(15, 23, 42, 0.96);
   border-radius: 18px;
   border: 1px solid #1e293b;
-  padding: 16px 16px 18px;
+  padding: 16px;
   box-shadow: 0 0 18px rgba(15, 23, 42, 0.9);
   backdrop-filter: blur(4px);
 }
@@ -96,9 +155,6 @@ body {
   margin: 0 0 6px;
   font-size: 0.95rem;
   font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .card-title.danger {
@@ -114,7 +170,7 @@ body {
 .info-box {
   border-radius: 12px;
   border: 1px solid #1f2937;
-  background: radial-gradient(circle at top left, #0f172a, #020617);
+  background: #020617;
   padding: 10px 12px;
   margin-bottom: 10px;
 }
@@ -128,12 +184,15 @@ body {
 }
 
 .info-value {
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
-    Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: monospace;
   font-size: 1rem;
   color: #22c55e;
+  word-break: break-all;
 }
 
+/* =========================================
+   6. FORMS & BUTTONS
+   ========================================= */
 .label {
   display: block;
   margin-top: 6px;
@@ -144,13 +203,15 @@ body {
 
 .input {
   width: 100%;
-  padding: 7px 9px;
+  padding: 8px 10px;
   border-radius: 10px;
   border: 1px solid #1f2937;
   background-color: #020617;
   color: #e5e7eb;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   outline: none;
+  margin-bottom: 8px;
+  font-family: inherit;
 }
 
 .input:focus {
@@ -161,37 +222,36 @@ body {
 .btn {
   border-radius: 999px;
   border: 1px solid transparent;
-  padding: 7px 14px;
-  font-size: 0.8rem;
+  padding: 8px 16px;
+  font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.18s ease-out;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
 }
 
 .btn-primary {
   background: linear-gradient(135deg, #22c55e, #4ade80);
   color: #020617;
-  box-shadow: 0 0 14px rgba(34, 197, 94, 0.5);
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.4);
 }
 
 .btn-primary:hover {
-  filter: brightness(1.06);
-  transform: translateY(-0.5px);
+  filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
 .btn-danger {
   background: radial-gradient(circle at top, #ef4444, #7f1d1d);
   color: #fee2e2;
-  box-shadow: 0 0 14px rgba(248, 113, 113, 0.5);
+  box-shadow: 0 0 14px rgba(248, 113, 113, 0.4);
 }
 
 .btn-danger:hover {
-  filter: brightness(1.05);
-  transform: translateY(-0.5px);
+  filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
 .full-width {
@@ -199,39 +259,16 @@ body {
   margin-top: 8px;
 }
 
-.hint {
-  margin-top: 8px;
-  font-size: 0.7rem;
-  color: #9ca3af;
-}
-
-.steps {
-  margin: 0 0 6px;
-  padding-left: 18px;
-  font-size: 0.8rem;
-  color: #e5e7eb;
-}
-
-.steps li + li {
-  margin-top: 3px;
-}
-
+/* =========================================
+   7. FOOTER
+   ========================================= */
 .footer {
-  margin-top: 18px;
-  padding-top: 8px;
+  margin-top: 24px;
+  padding-top: 12px;
   border-top: 1px solid #1f2937;
   display: flex;
   justify-content: space-between;
   gap: 12px;
   font-size: 0.7rem;
   color: #64748b;
-}
-
-/* Add this to the bottom of style.css */
-
-.two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 12px;
 }

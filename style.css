@@ -226,3 +226,12 @@ body {
   font-size: 0.7rem;
   color: #64748b;
 }
+
+/* Add this to the bottom of style.css */
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}

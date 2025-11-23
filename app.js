@@ -1,4 +1,5 @@
 // Addresses
+//original chain
 const VULNERABLE_ORACLE_ADDRESS = "0xd9145CCE52D386f254917e481eB44e9943F39138";
 const VICTIM_CONTRACT_ADDRESS = "0xd8b934580fcE35a11B58C6D73aDeE468a2833fa8";
 const ATTACKER_CONTRACT_ADDRESS = "0xf8e81D47203A594245E36C48e151709F0C19fBe8";
@@ -30,10 +31,10 @@ const attackerAbi = [
   "function manipulatePrice(uint256 newPrice) public",
 ];
 
-// ====== GLOBAL STATE ======
+//LOBAL STATE
 let provider, signer, currentAccount;
 
-// ====== TABS & UI ======
+//TABS & UI
 function switchTab(tabName) {
   document.getElementById('attack-view').style.display = 'none';
   document.getElementById('scanner-view').style.display = 'none';
@@ -60,7 +61,7 @@ function handleFileUpload(event) {
     reader.readAsText(file);
 }
 
-// ====== BLOCKCHAIN ACTIONS ======
+//BLOCKCHAIN ACTIONS
 async function connectWallet() {
   if (!window.ethereum) return alert("MetaMask not detected.");
 
@@ -83,7 +84,7 @@ function getContract(addr, abi, readOnly=false) {
   return new ethers.Contract(addr, abi, readOnly ? provider : signer);
 }
 
-// --- READ FUNCTIONS ---
+//READ FUNCTIONS
 async function loadOraclePrice() {
   try {
     const c = getContract(VULNERABLE_ORACLE_ADDRESS, vulnerableOracleAbi, true);
@@ -119,7 +120,7 @@ async function loadVictimETHBalance() {
   }
 }
 
-// --- WRITE FUNCTIONS ---
+//WRITE FUNCTIONS
 async function updateOraclePrice() {
   if (!signer) return alert("Please connect wallet first.");
   try {
@@ -141,7 +142,7 @@ async function buyTokens() {
     const tx = await c.buyTokens({ value: val });
     await tx.wait();
 
-    // FIXED: Refresh everything so ETH balance updates immediately
+    //Refresh everything so ETH balance updates immediately
     await refreshAllViews();
   } catch (e) {
     console.error(e);
@@ -179,7 +180,7 @@ async function cashOut() {
     }
 }
 
-// ====== SCANNER LOGIC (TEXT ONLY) ======
+//SCANNER LOGIC (for now only text )
 function analyzeCode() {
   const code = document.getElementById("codeInput").value;
   const resultBox = document.getElementById("scanResult");
@@ -212,7 +213,7 @@ function analyzeCode() {
   }
 }
 
-// FIXED: Added loadVictimETHBalance to the refresh loop
+//Added loadVictimETHBalance to the refresh loop
 async function refreshAllViews() {
   await loadOraclePrice();
   await loadTokenBalance();
@@ -220,7 +221,7 @@ async function refreshAllViews() {
   await loadVictimETHBalance();
 }
 
-// ====== INIT ======
+//INIT
 window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("connectBtn").addEventListener("click", connectWallet);
   document.getElementById("setPriceBtn").addEventListener("click", updateOraclePrice);
@@ -231,7 +232,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("scanBtn").addEventListener("click", analyzeCode);
   document.getElementById("fileUpload").addEventListener("change", handleFileUpload);
 
-  // NEW: Listen for wallet changes (Fixes the "switch account" issue)
+  //Listen for wallet changes (Fixes the "switch account" issue)
   if (window.ethereum) {
     window.ethereum.on('accountsChanged', () => window.location.reload());
     window.ethereum.on('chainChanged', () => window.location.reload());

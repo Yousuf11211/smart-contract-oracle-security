@@ -6,106 +6,148 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/png" href="images/logo.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
   </head>
   <body>
-    <div class="page hacker-grid">
+    <div class="page">
       <header class="header">
         <div class="header-left">
           <div class="logo-chip">
-            <span class="logo-text">Ω</span>
+            <i class="fa-solid fa-shield-halved"></i>
           </div>
           <div>
-            <h1 class="title">Oracle Manipulation Attack Lab</h1>
+            <h1 class="title">Oracle Manipulation Lab</h1>
             <p class="subtitle">
-              Simulate a vulnerable price oracle, a victim contract, and an attacker.
+              Advanced Security Simulation Environment
             </p>
           </div>
         </div>
-        <button id="connectBtn" class="btn btn-primary">Connect Wallet</button>
+        <button id="connectBtn" class="btn btn-primary">
+          <i class="fa-solid fa-wallet"></i> Connect Wallet
+        </button>
       </header>
 
       <nav class="nav-bar">
-          <button class="nav-btn active" onclick="switchTab('attack')">Attack Simulation</button>
-          <button class="nav-btn" onclick="switchTab('scanner')">Vulnerability Scanner</button>
+          <button class="nav-btn active" onclick="switchTab('attack')">
+            <i class="fa-solid fa-bug"></i> Attack Sim
+          </button>
+          <button class="nav-btn" onclick="switchTab('scanner')">
+            <i class="fa-solid fa-magnifying-glass-chart"></i> Vuln Scanner
+          </button>
       </nav>
 
       <main class="grid-container">
 
         <div id="attack-view" class="tab-content grid-layout">
+            <!-- Oracle Card -->
             <section class="card">
-                <h2 class="card-title">Vulnerable Oracle</h2>
-                <p class="card-desc">Anyone can set the price here.</p>
+                <h2 class="card-title">
+                  <i class="fa-solid fa-eye" style="color: var(--primary);"></i> Vulnerable Oracle
+                </h2>
+                <p class="card-desc">Publicly accessible price feed. No access control detected.</p>
+                
                 <div class="info-box">
                     <div class="info-label">Current Oracle Price</div>
                     <div id="oraclePrice" class="info-value">–</div>
                 </div>
-                <label class="label">Set fake price</label>
+
+                <label class="label">Set Artificial Price</label>
                 <input id="fakePriceInput" type="number" class="input" placeholder="e.g. 1000000" />
-                <button id="setPriceBtn" class="btn btn-danger full-width">Manipulate Price</button>
+                <button id="setPriceBtn" class="btn btn-danger full-width">
+                  <i class="fa-solid fa-bolt"></i> Manipulate Price
+                </button>
             </section>
 
+            <!-- Victim Card -->
             <section class="card">
-                <h2 class="card-title">Victim Contract</h2>
-                <p class="card-desc">Trusts the oracle blindly.</p>
-                <label class="label">ETH to spend</label>
+                <h2 class="card-title">
+                  <i class="fa-solid fa-user-shield" style="color: var(--success);"></i> Victim Contract
+                </h2>
+                <p class="card-desc">Relies on the vulnerable oracle for token pricing.</p>
+                
+                <label class="label">ETH to Spend</label>
                 <input id="ethAmountInput" type="number" class="input" value="0.01" step="0.001" />
-                <button id="buyTokensBtn" class="btn btn-primary full-width">Buy Tokens (Legit)</button>
-                <div class="info-box">
-                    <div class="info-label">Your Token Balance</div>
-                    <div id="tokenBalance" class="info-value">0</div>
-                </div>
-                <div class="info-box" style="border-color: #eab308; margin-top: 10px;">
-                    <div class="info-label" style="color: #fde047;">Contract ETH Balance (The Honey)</div>
-                    <div id="victimEthBalance" class="info-value" style="color: #fde047;">0 ETH</div>
+                <button id="buyTokensBtn" class="btn btn-primary full-width">
+                  <i class="fa-solid fa-coins"></i> Buy Tokens (Legit)
+                </button>
+
+                <div style="margin-top: 24px;">
+                  <div class="info-box">
+                      <div class="info-label">Your Token Balance</div>
+                      <div id="tokenBalance" class="info-value">0</div>
+                  </div>
+                  <div class="info-box" style="border-color: rgba(234, 179, 8, 0.3); background: rgba(234, 179, 8, 0.05);">
+                      <div class="info-label" style="color: #fde047;">Contract ETH Balance (Honey)</div>
+                      <div id="victimEthBalance" class="info-value" style="color: #fde047;">0 ETH</div>
+                  </div>
                 </div>
             </section>
 
-            <section class="card">
-                <h2 class="card-title danger">Attack Simulation</h2>
-                <p class="card-desc">Atomic transaction exploit.</p>
+            <!-- Attack Card -->
+            <section class="card" style="grid-column: 1 / -1;">
+                <h2 class="card-title danger">
+                  <i class="fa-solid fa-skull-crossbones"></i> Attack Console
+                </h2>
+                <p class="card-desc">Execute atomic transaction exploit to drain funds.</p>
+                
                 <div class="two-col">
                     <div>
-                        <label class="label">Fake price</label>
+                        <label class="label">Target Price</label>
                         <input id="attackPriceInput" type="number" class="input" value="1000000" />
                     </div>
                     <div>
-                        <label class="label">ETH to use</label>
+                        <label class="label">Attack ETH</label>
                         <input id="attackEthInput" type="number" class="input" value="0.05" step="0.001" />
                     </div>
                 </div>
-                <div class="info-box" style="margin-top: 12px; border-color: #ef4444;">
+
+                <div class="info-box" style="margin-top: 16px; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05);">
                     <div class="info-label" style="color: #fca5a5;">Attacker Contract Loot</div>
                     <div id="attackerBalance" class="info-value" style="color: #fca5a5;">0</div>
                 </div>
-                <button id="runAttackBtn" class="btn btn-danger full-width">Run Full Attack</button>
-                <button id="cashOutBtn" class="btn btn-primary full-width" style="background: #eab308; color: black; margin-top: 8px;">💰 Drain & Cash Out</button>
+
+                <div class="two-col" style="margin-top: 16px;">
+                  <button id="runAttackBtn" class="btn btn-danger">
+                    <i class="fa-solid fa-play"></i> Run Full Attack
+                  </button>
+                  <button id="cashOutBtn" class="btn btn-primary" style="background: linear-gradient(135deg, #eab308, #ca8a04);">
+                    <i class="fa-solid fa-money-bill-wave"></i> Drain & Cash Out
+                  </button>
+                </div>
             </section>
         </div>
 
-        <div id="scanner-view" class="tab-content" style="display: none;">
+        <div id="scanner-view" class="tab-content hidden">
             <section class="card" style="max-width: 800px; margin: 0 auto;">
-                <h2 class="card-title">🛡️ Smart Contract Scanner</h2>
-                <p class="card-desc">Upload a .sol file to detect Oracle Manipulation vulnerabilities.</p>
+                <h2 class="card-title">
+                  <i class="fa-solid fa-radar"></i> Smart Contract Scanner
+                </h2>
+                <p class="card-desc">Static analysis engine for Oracle Manipulation vulnerabilities.</p>
 
                 <div class="two-col" style="align-items: center;">
                     <div>
-                        <label class="label" for="fileUpload">Upload File (.sol)</label>
-                        <input type="file" id="fileUpload" accept=".sol" class="input" style="padding: 6px;" />
+                        <label class="label" for="fileUpload">Upload Source (.sol)</label>
+                        <input type="file" id="fileUpload" accept=".sol" class="input" style="padding: 8px;" />
                     </div>
                     <div>
-                        <div class="info-box" style="text-align: center; color: #94a3b8;">Static Analysis Mode</div>
+                        <div class="info-box" style="text-align: center; color: var(--text-muted); margin-bottom: 0;">
+                          <i class="fa-solid fa-microchip"></i> Static Analysis Mode
+                        </div>
                     </div>
                 </div>
 
-                <label class="label" style="margin-top: 12px;">Or Paste Code</label>
-                <textarea id="codeInput" class="input" rows="10" placeholder="// Paste Solidity code here..." style="font-family: monospace; color: #4ade80;"></textarea>
+                <label class="label" style="margin-top: 20px;">Or Paste Solidity Code</label>
+                <textarea id="codeInput" class="input" rows="12" placeholder="// Paste Solidity code here..." style="font-family: 'Roboto Mono', monospace; font-size: 0.9rem;"></textarea>
 
-                <button id="scanBtn" class="btn btn-primary full-width" style="margin-top: 12px;">Analyze Code</button>
+                <button id="scanBtn" class="btn btn-primary full-width">
+                  <i class="fa-solid fa-magnifying-glass"></i> Analyze Code
+                </button>
 
-                <div id="scanResult" class="info-box" style="margin-top: 12px; display: none;">
+                <div id="scanResult" class="info-box" style="margin-top: 24px; display: none;">
                     <div class="info-label">Audit Report</div>
-                    <div id="scanMessage" class="info-value"></div>
+                    <div id="scanMessage" class="info-value" style="font-size: 0.95rem; line-height: 1.6;"></div>
                 </div>
             </section>
         </div>
@@ -113,11 +155,12 @@
       </main>
 
       <footer class="footer">
-        <span>Blockchain Security · Oracle Manipulation Demo</span>
-        <span>HTML · CSS · JavaScript · ethers.js</span>
+        <span><i class="fa-solid fa-shield-cat"></i> Blockchain Security Lab</span>
+        <span>v2.0.0 · Premium Edition</span>
       </footer>
     </div>
 
+    <div id="toast-container"></div>
     <script src="app.js"></script>
   </body>
 </html>

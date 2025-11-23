@@ -15,7 +15,7 @@ contract VictimContract {
         oracle = IOracle(_oracle);
     }
 
-    // VULNERABILITY 1: Trusts the oracle blindly
+    // VULNERABILITY: Trusts the oracle blindly
     function buyTokens() public payable {
         require(msg.value > 0, "Send ETH to buy tokens");
         uint256 price = oracle.getPrice();
@@ -33,9 +33,15 @@ contract VictimContract {
         // Calculate how much ETH to return (Tokens / Price)
         uint256 ethToReturn = tokenAmount / currentPrice;
 
-        require(address(this).balance >= ethToReturn, "Contract has no ETH to give you!");
+        // FIX: If the contract doesn't have enough ETH, just drain what's left.
+        // This prevents the "Contract has no ETH" revert error.
+        if (address(this).balance < ethToReturn) {
+            ethToReturn = address(this).balance;
+        }
 
         balances[msg.sender] -= tokenAmount;
+
+        // Transfer the calculated amount (or the max available)
         payable(msg.sender).transfer(ethToReturn);
     }
 }

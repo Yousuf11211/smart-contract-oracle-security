@@ -5,7 +5,6 @@
     <title>Oracle Manipulation Attack Lab</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="style.css" />
-    <!-- Ethers v6 UMD build -->
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
   </head>
   <body>
@@ -26,7 +25,6 @@
       </header>
 
       <main class="grid">
-        <!-- Oracle Panel -->
         <section class="card">
           <h2 class="card-title">Vulnerable Oracle</h2>
           <p class="card-desc">
@@ -50,14 +48,8 @@
           <button id="setPriceBtn" class="btn btn-danger full-width">
             Manipulate Oracle Price
           </button>
-
-          <p class="hint">
-            In real DeFi attacks, this kind of manipulation is done via low-liquidity
-            markets or weak price feeds.
-          </p>
         </section>
 
-        <!-- Victim Panel -->
         <section class="card">
           <h2 class="card-title">Victim Contract</h2>
           <p class="card-desc">
@@ -75,74 +67,75 @@
           />
 
           <button id="buyTokensBtn" class="btn btn-primary full-width">
-            Buy Tokens (uses oracle price)
+            Buy Tokens (Legitimate)
           </button>
 
           <div class="info-box">
             <div class="info-label">Your Token Balance</div>
             <div id="tokenBalance" class="info-value">0</div>
           </div>
-
-          <p class="hint">
-            After manipulating the oracle, buy again. You’ll see how many more tokens
-            you get for the same ETH.
-          </p>
         </section>
 
-        <!-- Attack Panel -->
         <section class="card">
           <h2 class="card-title danger">Attack Simulation</h2>
           <p class="card-desc">
             This demonstrates how an attacker can manipulate the oracle and exploit
-            the victim in a single flow.
+            the victim in a single atomic transaction.
           </p>
 
-          <label class="label" for="attackPriceInput">
-            Fake price to use in attack
-          </label>
-          <input
-            id="attackPriceInput"
-            type="number"
-            class="input"
-            value="1000000"
-          />
+          <div class="two-col">
+            <div>
+                <label class="label" for="attackPriceInput">Fake price</label>
+                <input id="attackPriceInput" type="number" class="input" value="1000000" />
+            </div>
+            <div>
+                <label class="label" for="attackEthInput">ETH to use</label>
+                <input id="attackEthInput" type="number" class="input" value="0.05" step="0.001" />
+            </div>
+          </div>
 
-          <label class="label" for="attackEthInput">
-            ETH to use in attack
-          </label>
-          <input
-            id="attackEthInput"
-            type="number"
-            class="input"
-            value="0.05"
-            step="0.001"
-          />
+          <div class="info-box" style="margin-top: 12px; border-color: #ef4444;">
+            <div class="info-label" style="color: #fca5a5;">Attacker Contract Loot (Tokens)</div>
+            <div id="attackerBalance" class="info-value" style="color: #fca5a5;">0</div>
+          </div>
 
           <button id="runAttackBtn" class="btn btn-danger full-width">
-            Run Full Attack (set price + buy)
+            Run Full Attack
           </button>
 
-          <p class="hint">
-            In your report, you can describe this sequence as: 1) manipulate oracle,
-            2) buy tokens cheaply, 3) drain value from the system.
-          </p>
+          <button id="cashOutBtn" class="btn btn-primary full-width" style="background: #eab308; color: black; margin-top: 8px;">
+            💰 Drain & Cash Out
+          </button>
         </section>
 
-        <!-- Info Panel -->
         <section class="card">
-          <h2 class="card-title">How to Use This Demo</h2>
-          <ol class="steps">
-            <li>Click <strong>Connect Wallet</strong> and select MetaMask.</li>
-            <li>Click <strong>Manipulate Oracle Price</strong> and set a crazy value (e.g. 1 or 1,000,000).</li>
-            <li>Use <strong>Buy Tokens</strong> to see how your token balance changes.</li>
-            <li>Use <strong>Run Full Attack</strong> to automate price manipulation and buying.</li>
-          </ol>
-          <p class="hint">
-            The Solidity contracts implement the vulnerable oracle, victim logic, and
-            attacker logic. This web page is just a visual front-end to interact with
-            them using MetaMask and ethers.js.
+          <h2 class="card-title">🛡️ Smart Contract Scanner</h2>
+          <p class="card-desc">
+            Upload a .sol file or paste code to scan for Oracle Manipulation risks.
           </p>
+
+          <label class="label" for="fileUpload">Upload Solidity File (.sol)</label>
+          <input type="file" id="fileUpload" accept=".sol" class="input" style="padding: 4px;" />
+
+          <label class="label" for="codeInput">Or Paste Code</label>
+          <textarea
+            id="codeInput"
+            class="input"
+            rows="5"
+            placeholder="// Paste Solidity code here..."
+            style="font-family: monospace; color: #4ade80; font-size: 0.8rem;"
+          ></textarea>
+
+          <button id="scanBtn" class="btn btn-primary full-width" style="margin-top: 12px;">
+            Analyze Code
+          </button>
+
+          <div id="scanResult" class="info-box" style="margin-top: 12px; display: none;">
+            <div class="info-label">Audit Report</div>
+            <div id="scanMessage" class="info-value" style="font-size: 0.85rem;"></div>
+          </div>
         </section>
+
       </main>
 
       <footer class="footer">

@@ -1,21 +1,20 @@
-// ====== CONFIG: FILL THESE AFTER DEPLOYING CONTRACTS ======
-
+// Addresses
 const VULNERABLE_ORACLE_ADDRESS = "0xd9145CCE52D386f254917e481eB44e9943F39138";
 const VICTIM_CONTRACT_ADDRESS = "0xd8b934580fcE35a11B58C6D73aDeE468a2833fa8";
 const ATTACKER_CONTRACT_ADDRESS = "0xf8e81D47203A594245E36C48e151709F0C19fBe8";
 
 
-// chain 1 (Bad)
-const VULNERABLE_ORACLE_ADDRESS = "0x111...";
-const VICTIM_ADDRESS = "0x222...";
-const ATTACKER_ADDRESS = "0x333...";
+// // chain 1 (Bad)
+// const VULNERABLE_ORACLE_ADDRESS = "0x111...";
+// const VICTIM_ADDRESS = "0x222...";
+// const ATTACKER_ADDRESS = "0x333...";
 
 // chain 2 (Good)
 const SECURE_ORACLE_ADDRESS = "0xe2899bddFD890e320e643044c6b95B9B0b84157A"; // Address of SecuredOracle
 const SECURE_VICTIM_ADDRESS = "0x1c91347f2A44538ce62453BEBd9Aa907C662b4bD"; // Address of Victim B
 const SECURE_ATTACKER_ADDRESS = "0x93f8dddd876c7dBE3323723500e83E202A7C96CC"; // Address of Attacker B
 
-// ====== ABIs ======
+// ABI
 const vulnerableOracleAbi = [
   "function setPrice(uint256 _price) public",
   "function getPrice() public view returns (uint256)",

@@ -1,8 +1,9 @@
 // ====== CONFIG: FILL THESE AFTER DEPLOYING CONTRACTS ======
 
-const VULNERABLE_ORACLE_ADDRESS = "0x421644DC139096d9FBe89949926F1564b93C7C7F";
-const VICTIM_CONTRACT_ADDRESS = "0xa6551042e0F3e9455ae7BBCE7Bb2708F5720ed69";
-const ATTACKER_CONTRACT_ADDRESS = "0x304E58107bb744196cF2cF3E71037bfcFdc1B32C";
+const VULNERABLE_ORACLE_ADDRESS = "0xf3b6173A93cEa7FbF15e81b2db86b281FeA3df12";
+const VICTIM_CONTRACT_ADDRESS = "0x066A452554545cAa102c47f3A4ae4Ef8bfD8dF75";
+const ATTACKER_CONTRACT_ADDRESS = "0xB3ee93AD28D7c57da506e8403d193C3F235869E0";
+
 
 // ====== ABIs ======
 const vulnerableOracleAbi = [
@@ -34,7 +35,6 @@ function switchTab(tabName) {
       document.getElementById('scanner-view').style.display = 'block';
   }
 
-  // Updates the active button state
   document.querySelectorAll('.nav-btn').forEach(btn => {
       btn.classList.remove('active');
       if (btn.textContent.toLowerCase().includes(tabName)) {
@@ -74,6 +74,7 @@ function getContract(addr, abi, readOnly=false) {
   return new ethers.Contract(addr, abi, readOnly ? provider : signer);
 }
 
+// --- READ FUNCTIONS ---
 async function loadOraclePrice() {
   try {
     const c = getContract(VULNERABLE_ORACLE_ADDRESS, vulnerableOracleAbi, true);
@@ -96,13 +97,27 @@ async function loadAttackerBalance() {
   } catch (e) { console.error(e); }
 }
 
+async function loadVictimETHBalance() {
+  try {
+    if (!provider) provider = new ethers.BrowserProvider(window.ethereum);
+    const balanceWei = await provider.getBalance(VICTIM_CONTRACT_ADDRESS);
+    const balanceEth = ethers.formatEther(balanceWei);
+
+    const box = document.getElementById("victimEthBalance");
+    if (box) box.textContent = balanceEth + " ETH";
+  } catch (error) {
+    console.error("Failed to load victim ETH balance:", error);
+  }
+}
+
+// --- WRITE FUNCTIONS ---
 async function updateOraclePrice() {
   if (!signer) return alert("Please connect wallet first.");
   try {
     const c = getContract(VULNERABLE_ORACLE_ADDRESS, vulnerableOracleAbi);
     const tx = await c.setPrice(document.getElementById("fakePriceInput").value);
     await tx.wait();
-    await loadOraclePrice();
+    await refreshAllViews(); // Update price on screen
   } catch (e) {
     console.error(e);
     alert("Transaction failed. Check console for details.");
@@ -116,7 +131,9 @@ async function buyTokens() {
     const val = ethers.parseEther(document.getElementById("ethAmountInput").value);
     const tx = await c.buyTokens({ value: val });
     await tx.wait();
-    await loadTokenBalance();
+
+    // FIXED: Refresh everything so ETH balance updates immediately
+    await refreshAllViews();
   } catch (e) {
     console.error(e);
     alert("Transaction failed. Check console for details.");
@@ -163,36 +180,35 @@ function analyzeCode() {
 
   let findings = [];
 
-  // 1. Check for public setPrice without owner check
   if (/function\s+setPrice\s*\([^)]*\)\s*public/.test(code) && !/onlyOwner|require\(\s*msg\.sender/.test(code)) {
     findings.push("[CRITICAL] 'setPrice' is public without access control. Anyone can manipulate the price.");
   }
 
-  // 2. Check for missing Chainlink
   if (code.includes(".getPrice()") && !code.includes("AggregatorV3Interface")) {
     findings.push("[HIGH] Contract uses an insecure or custom oracle instead of Chainlink.");
   }
 
-  // 3. Check for direct math usage
   if (code.includes("* price") || code.includes("* oracle.getPrice()")) {
     findings.push("[INFO] Price is used directly in multiplication. Verify decimals and overflow protection.");
   }
 
   if (findings.length > 0) {
     msgBox.innerHTML = findings.join("<br><br>");
-    resultBox.style.borderColor = "#ef4444"; // Red border
-    msgBox.style.color = "#fca5a5"; // Reddish text
+    resultBox.style.borderColor = "#ef4444";
+    msgBox.style.color = "#fca5a5";
   } else {
     msgBox.textContent = "No obvious oracle vulnerabilities found in this snippet.";
-    resultBox.style.borderColor = "#22c55e"; // Green border
-    msgBox.style.color = "#4ade80"; // Green text
+    resultBox.style.borderColor = "#22c55e";
+    msgBox.style.color = "#4ade80";
   }
 }
 
+// FIXED: Added loadVictimETHBalance to the refresh loop
 async function refreshAllViews() {
   await loadOraclePrice();
   await loadTokenBalance();
   await loadAttackerBalance();
+  await loadVictimETHBalance();
 }
 
 // ====== INIT ======
@@ -203,7 +219,12 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("runAttackBtn").addEventListener("click", runAttack);
   document.getElementById("cashOutBtn").addEventListener("click", cashOut);
 
-  // Scanner Listeners
   document.getElementById("scanBtn").addEventListener("click", analyzeCode);
   document.getElementById("fileUpload").addEventListener("change", handleFileUpload);
+
+  // NEW: Listen for wallet changes (Fixes the "switch account" issue)
+  if (window.ethereum) {
+    window.ethereum.on('accountsChanged', () => window.location.reload());
+    window.ethereum.on('chainChanged', () => window.location.reload());
+  }
 });

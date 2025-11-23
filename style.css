@@ -1,6 +1,5 @@
-/* =========================================
-   1. GLOBAL RESET & THEME
-   ========================================= */
+/*1. GLOBAL RESET & THEME*/
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -29,9 +28,8 @@ body {
   background-size: 22px 22px;
 }
 
-/* =========================================
-   2. HEADER & LOGO
-   ========================================= */
+/*2. HEADER & LOGO*/
+
 .header {
   display: flex;
   align-items: center;
@@ -74,9 +72,8 @@ body {
   color: #94a3b8;
 }
 
-/* =========================================
-   3. NAVIGATION TABS (NEW)
-   ========================================= */
+/*3. NAVIGATION TABS*/
+
 .nav-bar {
   display: flex;
   gap: 10px;
@@ -108,9 +105,8 @@ body {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* =========================================
-   4. LAYOUT & ANIMATION
-   ========================================= */
+/*4. LAYOUT & ANIMATION*/
+
 .tab-content {
   animation: fadeIn 0.3s ease-in-out;
 }
@@ -139,9 +135,8 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* =========================================
-   5. CARDS & COMPONENTS
-   ========================================= */
+/*5. CARDS & COMPONENTS*/
+
 .card {
   background: rgba(15, 23, 42, 0.96);
   border-radius: 18px;
@@ -190,9 +185,8 @@ body {
   word-break: break-all;
 }
 
-/* =========================================
-   6. FORMS & BUTTONS
-   ========================================= */
+/*6. FORMS & BUTTONS*/
+
 .label {
   display: block;
   margin-top: 6px;
@@ -259,9 +253,8 @@ body {
   margin-top: 8px;
 }
 
-/* =========================================
-   7. FOOTER
-   ========================================= */
+/*7. FOOTER*/
+
 .footer {
   margin-top: 24px;
   padding-top: 12px;

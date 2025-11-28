@@ -246,6 +246,17 @@ body::before {
   box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
 }
 
+.btn-secondary {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--card-border);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
 .btn-danger {
   background: linear-gradient(135deg, var(--danger), #be185d);
   color: #fff;

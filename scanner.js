@@ -11,14 +11,14 @@ function showToast(message, type = 'info') {
     }, 5000);
 }
 
-function setLoading(btnId, isLoading) {
+function setLoading(btnId, isLoading, originalText = '') {
     const btn = document.getElementById(btnId);
     if (isLoading) {
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
     } else {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Analyze Code';
+        btn.innerHTML = originalText;
     }
 }
 
@@ -88,7 +88,7 @@ function analyzeCode() {
 
         messageBox.innerHTML = reportHTML;
         resultBox.style.display = 'block';
-        setLoading("scanBtn", false);
+        setLoading("scanBtn", false, '<i class="fa-solid fa-magnifying-glass"></i> Analyze Code');
         showToast("Analysis complete.", "success");
 
     }, 1000);

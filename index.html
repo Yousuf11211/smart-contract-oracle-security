@@ -24,23 +24,24 @@
             </p>
           </div>
         </div>
-        <button id="connectBtn" class="btn btn-primary">
-          <i class="fa-solid fa-wallet"></i> Connect Wallet
-        </button>
-      </header>
+        <div class="header-right">
+            <button id="connectBtn" class="btn btn-primary">
+              <i class="fa-solid fa-wallet"></i> Connect Wallet
+            </button>
+            <a href="scanner.html" class="btn btn-secondary">
+              <i class="fa-solid fa-magnifying-glass-chart"></i> Vuln Scanner
+            </a>
+          </div>
+        </header>
 
-      <nav class="nav-bar">
-          <a href="index.html" class="nav-btn active">
-            <i class="fa-solid fa-bug"></i> Attack Sim
-          </a>
-          <a href="scanner.html" class="nav-btn">
-            <i class="fa-solid fa-magnifying-glass-chart"></i> Vuln Scanner
-          </a>
-
-          <button id="chainToggle" class="btn btn-warning nav-btn" style="margin-left: auto;">
-              <i class="fa-solid fa-toggle-on"></i> Switch to Secure Chain
-          </button>
-      </nav>
+        <div class="toggle-container">
+            <span class="toggle-label">Vulnerable Mode</span>
+            <label class="switch">
+                <input type="checkbox" id="chainToggle">
+                <span class="slider round"></span>
+            </label>
+            <span class="toggle-label">Safe Mode</span>
+        </div>
 
       <main class="grid-container">
 

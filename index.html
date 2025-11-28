@@ -30,12 +30,12 @@
       </header>
 
       <nav class="nav-bar">
-          <button class="nav-btn active" onclick="switchTab('attack')">
+          <a href="index.html" class="nav-btn active">
             <i class="fa-solid fa-bug"></i> Attack Sim
-          </button>
-          <button class="nav-btn" onclick="switchTab('scanner')">
+          </a>
+          <a href="scanner.html" class="nav-btn">
             <i class="fa-solid fa-magnifying-glass-chart"></i> Vuln Scanner
-          </button>
+          </a>
 
           <button id="chainToggle" class="btn btn-warning nav-btn" style="margin-left: auto;">
               <i class="fa-solid fa-toggle-on"></i> Switch to Secure Chain
@@ -60,7 +60,7 @@
                     <div id="oraclePrice" class="info-value">–</div>
                 </div>
 
-                <label class="label">Set Artificial Price</label>
+                <label class="label" for="fakePriceInput">Set Artificial Price</label>
                 <input id="fakePriceInput" type="number" class="input" placeholder="e.g. 1000000" />
                 <button id="setPriceBtn" class="btn btn-danger full-width">
                   <i class="fa-solid fa-bolt"></i> Manipulate Price
@@ -72,7 +72,7 @@
                 </h2>
                 <p class="card-desc">Relies on the vulnerable oracle for token pricing.</p>
 
-                <label class="label">ETH to Spend</label>
+                <label class="label" for="ethAmountInput">ETH to Spend</label>
                 <input id="ethAmountInput" type="number" class="input" value="0.01" step="0.001" />
                 <button id="buyTokensBtn" class="btn btn-primary full-width">
                   <i class="fa-solid fa-coins"></i> Buy Tokens (Legit)
@@ -97,11 +97,11 @@
                 
                 <div class="two-col">
                     <div>
-                        <label class="label">Target Price</label>
+                        <label class="label" for="attackPriceInput">Target Price</label>
                         <input id="attackPriceInput" type="number" class="input" value="1000000" />
                     </div>
                     <div>
-                        <label class="label">Attack ETH</label>
+                        <label class="label" for="attackEthInput">Attack ETH</label>
                         <input id="attackEthInput" type="number" class="input" value="0.05" step="0.001" />
                     </div>
                 </div>
@@ -122,38 +122,6 @@
             </section>
         </div>
 
-        <div id="scanner-view" class="tab-content hidden">
-            <section class="card" style="max-width: 800px; margin: 0 auto;">
-                <h2 class="card-title">
-                  <i class="fa-solid fa-radar"></i> Smart Contract Scanner
-                </h2>
-                <p class="card-desc">Static analysis engine for Oracle Manipulation vulnerabilities.</p>
-
-                <div class="two-col" style="align-items: center;">
-                    <div>
-                        <label class="label" for="fileUpload">Upload Source (.sol)</label>
-                        <input type="file" id="fileUpload" accept=".sol" class="input" style="padding: 8px;" />
-                    </div>
-                    <div>
-                        <div class="info-box" style="text-align: center; color: var(--text-muted); margin-bottom: 0;">
-                          <i class="fa-solid fa-microchip"></i> Static Analysis Mode
-                        </div>
-                    </div>
-                </div>
-
-                <label class="label" style="margin-top: 20px;">Or Paste Solidity Code</label>
-                <textarea id="codeInput" class="input" rows="12" placeholder="// Paste Solidity code here..." style="font-family: 'Roboto Mono', monospace; font-size: 0.9rem;"></textarea>
-
-                <button id="scanBtn" class="btn btn-primary full-width">
-                  <i class="fa-solid fa-magnifying-glass"></i> Analyze Code
-                </button>
-
-                <div id="scanResult" class="info-box" style="margin-top: 24px; display: none;">
-                    <div class="info-label">Audit Report</div>
-                    <div id="scanMessage" class="info-value" style="font-size: 0.95rem; line-height: 1.6;"></div>
-                </div>
-            </section>
-        </div>
 
       </main>
 

@@ -103,12 +103,27 @@ function toggleChain() {
 
 
 // UI UTILS (No changes)
-function showToast(message, type = 'info') { /* ... */ }
-function setLoading(btnId, isLoading, originalText = '') { /* ... */ }
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.remove();
+    }, 5000);
+}
 
-// TABS & UI (No changes)
-function switchTab(tabName) { /* ... */ }
-function handleFileUpload(event) { /* ... */ }
+function setLoading(btnId, isLoading, originalText = '') {
+    const btn = document.getElementById(btnId);
+    if (isLoading) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    } else {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
 
 // BLOCKCHAIN ACTIONS (Update to use ACTIVE_ADDRESS variables)
 async function connectWallet() {
@@ -278,8 +293,7 @@ async function cashOut() {
     }
 }
 
-// SCANNER LOGIC (No changes)
-function analyzeCode() { /* ... */ }
+
 
 async function refreshAllViews() {
   await loadOraclePrice();
@@ -302,8 +316,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("runAttackBtn").addEventListener("click", runAttack);
   document.getElementById("cashOutBtn").addEventListener("click", cashOut);
 
-  document.getElementById("scanBtn").addEventListener("click", analyzeCode);
-  document.getElementById("fileUpload").addEventListener("change", handleFileUpload);
+
 
   // NEW: Add event listener for the toggle button
   document.getElementById("chainToggle").addEventListener("click", toggleChain);

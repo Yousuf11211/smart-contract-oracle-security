@@ -48,16 +48,33 @@
                         </div>
                     </div>
 
-<label class="label" for="codeInput" style="margin-top: 20px;">Or Paste Solidity Code</label>
-                <textarea id="codeInput" class="input" rows="12" placeholder="// Paste Solidity code here..." style="font-family: 'Roboto Mono', monospace; font-size: 0.9rem;"></textarea>
+                    <label class="label" for="codeInput" style="margin-top: 20px;">Or Paste Solidity Code</label>
+                    <textarea id="codeInput" class="input" rows="12" placeholder="// Paste Solidity code here..." style="font-family: 'Roboto Mono', monospace; font-size: 0.9rem;"></textarea>
 
-                    <button id="scanBtn" class="btn btn-primary full-width" disabled>
-                      <i class="fa-solid fa-magnifying-glass"></i> Analyze Code
-                    </button>
+                    <div class="two-col" style="gap: 12px; margin-top: 20px; margin-bottom: 24px;">
+                        <button id="scanBtn" class="btn btn-primary full-width" disabled style="margin-top: 0;">
+                            <i class="fa-solid fa-magnifying-glass"></i> Analyze Code
+                        </button>
+                        <button id="fixBtn" class="btn btn-success full-width" disabled style="margin-top: 0; background: linear-gradient(135deg, #10b981, #059669); filter: grayscale(100%); transition: all 0.3s ease;">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Fix Issues
+                        </button>
+                    </div>
 
                     <div id="scanResult" class="info-box" style="margin-top: 24px; display: none;">
                         <div class="info-label">Audit Report</div>
                         <div id="scanMessage" class="info-value" style="font-size: 0.95rem; line-height: 1.6;"></div>
+                    </div>
+
+                    <div id="fixResult" class="info-box" style="margin-top: 24px; display: none; border-color: var(--success);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div class="info-label" style="color: var(--success); margin-bottom: 0;">SUGGESTED FIXES APPLIED</div>
+                            <button id="copyFixBtn" class="btn btn-secondary" style="padding: 4px 12px; font-size: 0.8rem; height: auto;">
+                                <i class="fa-regular fa-copy"></i> Copy Code
+                            </button>
+                        </div>
+                        <textarea id="fixedCodeOutput" class="input" rows="12" readonly 
+                                  style="font-family: 'Roboto Mono', monospace; color: #a7f3d0; background: rgba(6, 78, 59, 0.3); border: 1px solid #059669;">
+                        </textarea>
                     </div>
                 </section>
             </div>
@@ -73,5 +90,3 @@
     <script src="scanner.js"></script>
 </body>
 </html>
-
-

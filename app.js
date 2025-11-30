@@ -9,12 +9,12 @@ const SECURE_ORACLE_ADDRESS = "0xfAEB346f59b71fd80E4B601A7C38B6BAbC3Ea98C"; // A
 const SECURE_VICTIM_ADDRESS = "0xB70f88a906F386202F5463B8c35342A7b5b2BAeC"; // Address of Victim B
 const SECURE_ATTACKER_ADDRESS = "0xF881Dca9326F0d8898205531848848b8B30AcFa6"; // Address of Attacker B
 
-// --- NEW: Global Variables for the CURRENTLY ACTIVE Chain ---
+//lobal Variables for the CURRENTLY ACTIVE Chain
 let ACTIVE_ORACLE_ADDRESS;
 let ACTIVE_VICTIM_ADDRESS;
 let ACTIVE_ATTACKER_ADDRESS;
 
-// --- Map the fixed addresses into sets ---
+//Map the fixed addresses into sets
 const CHAIN_VULNERABLE = {
     ORACLE: VULNERABLE_ORACLE_ADDRESS,
     VICTIM: VICTIM_CONTRACT_ADDRESS, // Use the base vulnerable victim
@@ -27,11 +27,10 @@ const CHAIN_SECURE = {
     ATTACKER: SECURE_ATTACKER_ADDRESS
 };
 
-// ABI (No changes here, they are generic enough)
+// ABI
 const vulnerableOracleAbi = [
   "function setPrice(uint256 _price) public",
   "function getPrice() public view returns (uint256)",
-  // Add owner function if you want to display owner for SecuredOracle
   "function owner() public view returns (address)"
 ];
 const victimAbi = [
@@ -47,10 +46,10 @@ const attackerAbi = [
 
 // GLOBAL STATE (Add isSecureChain for toggle)
 let provider, signer, currentAccount;
-let isSecureChain = false; // NEW: Track which chain is active
+let isSecureChain = false; //Track which chain is active
 
 
-// --- NEW CORE FUNCTION: Set the Active Chain ---
+//NEW CORE FUNCTION: Set the Active Chain
 function setChain(secure) {
     const targetChain = secure ? CHAIN_SECURE : CHAIN_VULNERABLE;
 
@@ -86,7 +85,7 @@ function setChain(secure) {
     refreshAllViews(); // Refresh data for the new chain
 }
 
-// --- NEW CORE FUNCTION: Toggle Chain ---
+//Toggle Chain
 function toggleChain() {
     setChain(!isSecureChain); // Toggle the state
 
@@ -102,7 +101,7 @@ function toggleChain() {
 }
 
 
-// UI UTILS (No changes)
+// UI UTILS
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
@@ -141,7 +140,7 @@ async function connectWallet() {
     document.getElementById("connectBtn").innerHTML = `<i class="fa-solid fa-wallet"></i> ${shortAddr}`;
 
     // Initialize to vulnerable chain on connect
-    setChain(false); // <--- NEW: Initialize chain after wallet connect
+    setChain(false); //Initialize chain after wallet connect
     showToast("Wallet connected!", "success");
   } catch (err) {
     console.error(err);
@@ -318,7 +317,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 
 
-  // NEW: Add event listener for the toggle button
+  //Add event listener for the toggle button
   document.getElementById("chainToggle").addEventListener("click", toggleChain);
 
 

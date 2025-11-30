@@ -63,7 +63,7 @@
                 <h2 class="card-title">
                   <i class="fa-solid fa-eye" style="color: var(--primary);"></i> Price Oracle
                 </h2>
-                <p class="card-desc">Public price feed for "Gold" collateral.</p>
+                <p class="card-desc">Public price feed for "Gold" collateral asset.</p>
 
                 <div class="info-box">
                     <div class="info-label">Current Oracle Price (1 Gold = X ETH)</div>
@@ -77,11 +77,11 @@
                 </button>
             </section>
 
-            <section class="card victim-section">
+            <section class="card bank-vault-section">
                 <h2 class="card-title">
-                    <i class="fa-solid fa-shield-halved" style="color: var(--success);"></i> Defender Dashboard
+                    <i class="fa-solid fa-vault" style="color: #fbbf24;"></i> Bank Vault
                 </h2>
-                <p class="card-desc">Optimize the protocol parameters to survive the attack.</p>
+                <p class="card-desc">Controls the total ETH liquidity available to be borrowed.</p>
 
                 <div class="info-box" style="margin-bottom: 10px;">
                     <div class="info-label" style="color: #fbbf24;">BANK LIQUIDITY POOL</div>
@@ -97,11 +97,16 @@
                         <i class="fa-solid fa-circle-dollar-to-slot"></i> Fund Bank
                     </button>
                 </div>
+            </section>
 
-                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
+            <section class="card defender-dashboard-section">
+                <h2 class="card-title">
+                    <i class="fa-solid fa-user-shield" style="color: var(--success);"></i> Loan Controls & Collateral
+                </h2>
+                <p class="card-desc">Manage safety parameters and user positions (Attacker or Customer).</p>
 
                 <div class="info-box" style="border-color: var(--success); background: rgba(74, 222, 128, 0.1);">
-                    <div class="info-label" style="color: var(--success);">Current Safety Factor</div>
+                    <div class="info-label" style="color: var(--success);">Current Safety Factor (Loan-to-Value)</div>
                     <div id="currentFactorDisplay" class="info-value">75%</div>
                 </div>
 
@@ -124,6 +129,40 @@
                     Your Collateral: <span id="userCollateral" style="color: white; font-family: 'Roboto Mono';">0 Gold</span>
                 </div>
             </section>
+            <section class="card manual-section" style="grid-column: 1 / -1; border: 1px dashed #fca5a5;">
+    <h2 class="card-title" style="color: #fb923c;">
+      <i class="fa-solid fa-hand-lizard"></i> Manual Exploit Lab
+    </h2>
+    <p class="card-desc">Perform the attack step-by-step to understand the math.</p>
+
+    <div class="three-col" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+
+        <div style="text-align: center;">
+            <div class="info-label">Step 1</div>
+            <button id="manualDepositBtn" class="btn btn-secondary full-width">
+                1. Deposit 10 Gold
+            </button>
+            <div style="font-size: 0.8rem; margin-top: 5px; color: #aaa;">Cost: Low</div>
+        </div>
+
+        <div style="text-align: center;">
+            <div class="info-label">Step 2</div>
+            <button id="manualManipulateBtn" class="btn btn-danger full-width">
+                2. Pump Price
+            </button>
+            <div style="font-size: 0.8rem; margin-top: 5px; color: #aaa;">Set Oracle to 1000</div>
+        </div>
+
+        <div style="text-align: center;">
+            <div class="info-label">Step 3</div>
+            <button id="manualBorrowBtn" class="btn btn-primary full-width">
+                3. Drain Bank
+            </button>
+            <div style="font-size: 0.8rem; margin-top: 5px; color: #aaa;">Borrow Max ETH</div>
+        </div>
+
+    </div>
+</section>
 
             <section class="card attack-section" style="grid-column: 1 / -1;">
                 <h2 class="card-title danger">

@@ -86,7 +86,7 @@ async function refreshData() {
 
 // --- WRITE FUNCTIONS ---
 
-// 1. NEW: Fund the Bank
+// 1. Fund the Bank
 async function fundBank() {
     if (!signer) return alert("Please connect wallet first.");
     const amount = document.getElementById("depositEthInput").value;
@@ -159,6 +159,36 @@ async function runFlashAttack() {
     } catch (err) { console.error(err); alert("Attack Failed."); }
 }
 
+// --- NEW MANUAL LAB FUNCTIONS ---
+
+// Step 2 Shortcut: Pump Price to 1000
+async function manualPump() {
+    document.getElementById("fakePriceInput").value = "1000";
+    await manipulateOracle();
+}
+
+// Step 3 Logic: Drain Bank (Borrow Max)
+async function manualDrain() {
+    if (!signer) return alert("Connect Wallet!");
+    const victim = new ethers.Contract(activeVictim, victimAbi, signer);
+
+    // Check how much is in the bank
+    const bankBalance = await provider.getBalance(VICTIM_CONTRACT_ADDRESS);
+    const readableBalance = ethers.formatEther(bankBalance);
+
+    if (parseFloat(readableBalance) === 0) return alert("Bank is already empty!");
+
+    try {
+        const tx = await victim.borrowETH(bankBalance);
+        await tx.wait();
+        refreshData();
+        alert(`Successfully drained ${readableBalance} ETH!`);
+    } catch (err) {
+        console.error(err);
+        alert("Drain Failed! (Did you deposit gold? Is the price pumped?)");
+    }
+}
+
 // --- INIT ---
 window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("connectBtn").onclick = connectWallet;
@@ -167,5 +197,10 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("setPriceBtn").onclick = manipulateOracle;
     document.getElementById("attackBtn").onclick = runFlashAttack;
     document.getElementById("chainToggle").onclick = () => setChain(!isSecureChain);
-    document.getElementById("fundBankBtn").onclick = fundBank; // <-- THIS IS THE CRITICAL MISSING LINE
+    document.getElementById("fundBankBtn").onclick = fundBank;
+
+    // NEW LISTENERS FOR MANUAL LAB
+    document.getElementById("manualDepositBtn").onclick = depositCollateral;
+    document.getElementById("manualManipulateBtn").onclick = manualPump;
+    document.getElementById("manualBorrowBtn").onclick = manualDrain;
 });

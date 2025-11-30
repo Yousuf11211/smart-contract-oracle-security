@@ -9,7 +9,7 @@ let provider, signer, currentAccount;
 let isSecureChain = false;
 let activeOracle, activeVictim, activeAttacker;
 
-// --- UPDATED ABI (The Interface) ---
+// --- ABI (The Interface) ---
 const oracleAbi = [
   "function setPrice(uint256 _price) public",
   "function getPrice() public view returns (uint256)",
@@ -32,7 +32,7 @@ const attackerAbi = [
 function setChain(secure) {
     isSecureChain = secure;
     activeOracle = secure ? SECURE_ORACLE_ADDRESS : VULNERABLE_ORACLE_ADDRESS;
-    activeVictim = VICTIM_CONTRACT_ADDRESS; // We use the same victim for this demo
+    activeVictim = VICTIM_CONTRACT_ADDRESS;
     activeAttacker = ATTACKER_CONTRACT_ADDRESS;
 
     // Update UI Text
@@ -53,16 +53,29 @@ async function connectWallet() {
 }
 
 // --- READ DATA ---
+async function loadVictimETHBalance() {
+    if (!provider) return;
+    try {
+        const balanceWei = await provider.getBalance(VICTIM_CONTRACT_ADDRESS);
+        const balanceEth = ethers.formatEther(balanceWei);
+        document.getElementById("victimEthBalance").innerText = parseFloat(balanceEth).toFixed(2) + " ETH";
+    } catch (error) {
+        console.error("Failed to load victim ETH balance:", error);
+    }
+}
+
 async function refreshData() {
     if (!signer) return;
     const oracle = new ethers.Contract(activeOracle, oracleAbi, provider);
     const victim = new ethers.Contract(activeVictim, victimAbi, provider);
 
+    await loadVictimETHBalance(); // Update Bank Balance
+
     // 1. Get Price
     const price = await oracle.getPrice();
     document.getElementById("oraclePrice").innerText = ethers.formatEther(price) + " ETH";
 
-    // 2. Get Collateral Factor (The Safety Dial)
+    // 2. Get Collateral Factor
     const factor = await victim.collateralFactor();
     document.getElementById("currentFactorDisplay").innerText = factor.toString() + "%";
 
@@ -73,7 +86,27 @@ async function refreshData() {
 
 // --- WRITE FUNCTIONS ---
 
-// 1. Defender: Set the Safety Dial
+// 1. NEW: Fund the Bank
+async function fundBank() {
+    if (!signer) return alert("Please connect wallet first.");
+    const amount = document.getElementById("depositEthInput").value;
+    if (!amount) return alert("Enter an amount to fund.");
+
+    try {
+        const tx = await signer.sendTransaction({
+            to: VICTIM_CONTRACT_ADDRESS,
+            value: ethers.parseEther(amount)
+        });
+        await tx.wait();
+        refreshData();
+        alert("Bank successfully funded!");
+    } catch (e) {
+        console.error(e);
+        alert("Funding failed. Check console.");
+    }
+}
+
+// 2. Defender: Set the Safety Dial
 async function updateSafetyDial() {
     const victim = new ethers.Contract(activeVictim, victimAbi, signer);
     const newFactor = document.getElementById("safetyDialInput").value;
@@ -83,20 +116,23 @@ async function updateSafetyDial() {
         await tx.wait();
         alert("Safety Factor Updated!");
         refreshData();
-    } catch (err) { console.error(err); alert("Update Failed"); }
+    } catch (err) {
+        console.error(err);
+        alert("Update Failed (Are you the owner?)");
+    }
 }
 
-// 2. User: Deposit Collateral
+// 3. User: Deposit Collateral
 async function depositCollateral() {
     const victim = new ethers.Contract(activeVictim, victimAbi, signer);
     try {
-        const tx = await victim.depositCollateral(); // Gives you 10 Gold
+        const tx = await victim.depositCollateral();
         await tx.wait();
         refreshData();
     } catch (err) { console.error(err); alert("Deposit Failed"); }
 }
 
-// 3. Attacker: Set Oracle Price
+// 4. Attacker: Set Oracle Price
 async function manipulateOracle() {
     const oracle = new ethers.Contract(activeOracle, oracleAbi, signer);
     const fakePrice = ethers.parseEther(document.getElementById("fakePriceInput").value);
@@ -112,7 +148,7 @@ async function manipulateOracle() {
     }
 }
 
-// 4. Attacker: The Atomic Flash Loan
+// 5. Attacker: The Atomic Flash Loan
 async function runFlashAttack() {
     const attacker = new ethers.Contract(activeAttacker, attackerAbi, signer);
     try {
@@ -120,7 +156,7 @@ async function runFlashAttack() {
         await tx.wait();
         alert("BOOM! Flash Loan Attack Executed. Bank Drained.");
         refreshData();
-    } catch (err) { console.error(err); alert("Attack Failed (Did you manipulate the price first?)"); }
+    } catch (err) { console.error(err); alert("Attack Failed."); }
 }
 
 // --- INIT ---
@@ -131,4 +167,5 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("setPriceBtn").onclick = manipulateOracle;
     document.getElementById("attackBtn").onclick = runFlashAttack;
     document.getElementById("chainToggle").onclick = () => setChain(!isSecureChain);
+    document.getElementById("fundBankBtn").onclick = fundBank; // <-- THIS IS THE CRITICAL MISSING LINE
 });

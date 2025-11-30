@@ -46,11 +46,11 @@
 
           <div class="global-balance-display">
             <div class="balance-icon">
-              <i class="fa-solid fa-ethereum"></i>
+              <i class="fa-solid fa-link"></i>
             </div>
             <div class="balance-info">
-              <div class="balance-label">Target Chain Status</div>
-              <div id="chainStatus" class="balance-value" style="color: #fca5a5; font-size: 1rem;">Active: VULNERABLE ORACLE</div>
+              <div class="balance-label">Target Chain</div>
+              <div id="chainStatus" class="balance-value" style="color: #fca5a5; font-size: 1rem;">Active: VULNERABLE</div>
             </div>
           </div>
         </div>
@@ -66,7 +66,7 @@
                 <p class="card-desc">Public price feed for "Gold" collateral.</p>
 
                 <div class="info-box">
-                    <div class="info-label">Current Oracle Price</div>
+                    <div class="info-label">Current Oracle Price (1 Gold = X ETH)</div>
                     <div id="oraclePrice" class="info-value">–</div>
                 </div>
 
@@ -82,6 +82,23 @@
                     <i class="fa-solid fa-shield-halved" style="color: var(--success);"></i> Defender Dashboard
                 </h2>
                 <p class="card-desc">Optimize the protocol parameters to survive the attack.</p>
+
+                <div class="info-box" style="margin-bottom: 10px;">
+                    <div class="info-label" style="color: #fbbf24;">BANK LIQUIDITY POOL</div>
+                    <div id="victimEthBalance" class="info-value" style="color: #fbbf24;">0 ETH</div>
+                </div>
+
+                <div class="two-col" style="align-items: end;">
+                    <div>
+                        <label class="label">ETH to add to Pool</label>
+                        <input id="depositEthInput" type="number" class="input" value="10" />
+                    </div>
+                    <button id="fundBankBtn" class="btn btn-primary full-width" style="margin-top:0; height: 46px;">
+                        <i class="fa-solid fa-circle-dollar-to-slot"></i> Fund Bank
+                    </button>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
 
                 <div class="info-box" style="border-color: var(--success); background: rgba(74, 222, 128, 0.1);">
                     <div class="info-label" style="color: var(--success);">Current Safety Factor</div>
@@ -104,7 +121,7 @@
                     <i class="fa-solid fa-piggy-bank"></i> Deposit 10 Gold (Simulate User)
                 </button>
                 <div style="text-align: center; margin-top: 10px; font-size: 0.9rem; color: #aaa;">
-                    Your Balance: <span id="userCollateral" style="color: white; font-family: 'Roboto Mono';">0 Gold</span>
+                    Your Collateral: <span id="userCollateral" style="color: white; font-family: 'Roboto Mono';">0 Gold</span>
                 </div>
             </section>
 

@@ -49,8 +49,8 @@
               <i class="fa-solid fa-ethereum"></i>
             </div>
             <div class="balance-info">
-              <div class="balance-label">Total ETH in Contracts</div>
-              <div id="victimEthBalance" class="balance-value">0 ETH</div>
+              <div class="balance-label">Target Chain Status</div>
+              <div id="chainStatus" class="balance-value" style="color: #fca5a5; font-size: 1rem;">Active: VULNERABLE ORACLE</div>
             </div>
           </div>
         </div>
@@ -58,85 +58,80 @@
       <main class="grid-container">
 
         <div id="attack-view" class="tab-content grid-layout">
-            <div style="grid-column: 1 / -1; text-align: center; margin-bottom: 20px;">
-                <h3 id="chainStatus" style="font-size: 1.2rem; color: #fca5a5;">Active: VULNERABLE Chain</h3>
-            </div>
 
-
-            <section class="card oracle-section"> <h2 class="card-title">
-                  <i class="fa-solid fa-eye" style="color: var(--primary);"></i> Vulnerable Oracle
+            <section class="card oracle-section">
+                <h2 class="card-title">
+                  <i class="fa-solid fa-eye" style="color: var(--primary);"></i> Price Oracle
                 </h2>
-                <p class="card-desc">Publicly accessible price feed. No access control detected.</p>
+                <p class="card-desc">Public price feed for "Gold" collateral.</p>
 
                 <div class="info-box">
                     <div class="info-label">Current Oracle Price</div>
                     <div id="oraclePrice" class="info-value">–</div>
                 </div>
 
-                <label class="label" for="fakePriceInput">Set Artificial Price</label>
+                <label class="label" for="fakePriceInput">Set Price (ETH)</label>
                 <input id="fakePriceInput" type="number" class="input" placeholder="e.g. 1000000" />
                 <button id="setPriceBtn" class="btn btn-danger full-width">
                   <i class="fa-solid fa-bolt"></i> Manipulate Price
                 </button>
             </section>
 
-            <section class="card victim-section"> <h2 class="card-title">
-                  <i class="fa-solid fa-user-shield" style="color: var(--success);"></i> Victim Contract
+            <section class="card victim-section">
+                <h2 class="card-title">
+                    <i class="fa-solid fa-shield-halved" style="color: var(--success);"></i> Defender Dashboard
                 </h2>
-                <p class="card-desc">Relies on the vulnerable oracle for token pricing.</p>
+                <p class="card-desc">Optimize the protocol parameters to survive the attack.</p>
 
-                <label class="label" for="ethAmountInput">ETH to Spend</label>
-                <input id="ethAmountInput" type="number" class="input" value="0.01" step="0.001" />
-                <button id="buyTokensBtn" class="btn btn-primary full-width">
-                  <i class="fa-solid fa-coins"></i> Buy Tokens (Legit)
+                <div class="info-box" style="border-color: var(--success); background: rgba(74, 222, 128, 0.1);">
+                    <div class="info-label" style="color: var(--success);">Current Safety Factor</div>
+                    <div id="currentFactorDisplay" class="info-value">75%</div>
+                </div>
+
+                <div class="two-col" style="align-items: end;">
+                    <div>
+                        <label class="label">Set New Factor (%)</label>
+                        <input id="safetyDialInput" type="number" class="input" placeholder="e.g. 50" />
+                    </div>
+                    <button id="updateFactorBtn" class="btn btn-secondary full-width" style="margin-top:0; height: 46px;">
+                        Update
+                    </button>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
+
+                <button id="depositBtn" class="btn btn-primary full-width">
+                    <i class="fa-solid fa-piggy-bank"></i> Deposit 10 Gold (Simulate User)
                 </button>
-
-                <div style="margin-top: 24px;">
-                  <div class="info-box">
-                      <div class="info-label">Your Token Balance</div>
-                      <div id="tokenBalance" class="info-value">0</div>
-                  </div>
+                <div style="text-align: center; margin-top: 10px; font-size: 0.9rem; color: #aaa;">
+                    Your Balance: <span id="userCollateral" style="color: white; font-family: 'Roboto Mono';">0 Gold</span>
                 </div>
             </section>
 
-            <section class="card attack-section" style="grid-column: 1 / -1;"> <h2 class="card-title danger">
-                  <i class="fa-solid fa-skull-crossbones"></i> Attack Console
+            <section class="card attack-section" style="grid-column: 1 / -1;">
+                <h2 class="card-title danger">
+                  <i class="fa-solid fa-skull-crossbones"></i> Atomic Attack Console
                 </h2>
-                <p class="card-desc">Execute atomic transaction exploit to drain funds.</p>
-                
-                <div class="two-col">
-                    <div>
-                        <label class="label" for="attackPriceInput">Target Price</label>
-                        <input id="attackPriceInput" type="number" class="input" value="1000000" />
-                    </div>
-                    <div>
-                        <label class="label" for="attackEthInput">Attack ETH</label>
-                        <input id="attackEthInput" type="number" class="input" value="0.05" step="0.001" />
+                <p class="card-desc">Execute a single-transaction Flash Loan exploit to drain the bank.</p>
+
+                <div class="info-box" style="border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05);">
+                    <div class="info-label" style="color: #fca5a5;">Attack Strategy</div>
+                    <div class="info-value" style="color: #fca5a5; font-size: 0.9rem; white-space: normal;">
+                        1. Flash Borrow Collateral &rarr; 2. Manipulate Oracle &rarr; 3. Borrow 100% of Liquidity &rarr; 4. Profit
                     </div>
                 </div>
 
-                <div class="info-box" style="margin-top: 16px; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05);">
-                    <div class="info-label" style="color: #fca5a5;">Attacker Contract Loot</div>
-                    <div id="attackerBalance" class="info-value" style="color: #fca5a5;">0</div>
-                </div>
-
-                <div class="two-col" style="margin-top: 16px;">
-                  <button id="runAttackBtn" class="btn btn-danger">
-                    <i class="fa-solid fa-play"></i> Run Full Attack
-                  </button>
-                  <button id="cashOutBtn" class="btn btn-primary" style="background: linear-gradient(135deg, #eab308, #ca8a04);">
-                    <i class="fa-solid fa-money-bill-wave"></i> Drain & Cash Out
-                  </button>
-                </div>
+                <button id="attackBtn" class="btn btn-danger full-width" style="height: 60px; font-size: 1.1rem;">
+                    <i class="fa-solid fa-bomb"></i> EXECUTE FLASH ATTACK
+                </button>
             </section>
         </div>
-
 
       </main>
 
       <footer class="footer">
         <span><i class="fa-solid fa-shield-cat"></i> Blockchain Security Lab</span>
-        <span>v2.0.0 · Premium Edition</span>
+        <span>v2.0.0 · Defender Edition</span>
       </footer>
     </div>
 

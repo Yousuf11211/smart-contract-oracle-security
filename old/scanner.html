@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vulnerability Scanner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="page">
+        <header class="header">
+            <div class="header-left">
+                <div class="logo-chip">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h1 class="title">Oracle Manipulation Lab</h1>
+                    <p class="subtitle">
+                        Vulnerability Scanner
+                    </p>
+                </div>
+            </div>
+            <a href="index.html" class="btn btn-primary">
+                <i class="fa-solid fa-arrow-left"></i> Back to Attack Sim
+            </a>
+        </header>
+
+        <main class="grid-container">
+            <div id="scanner-view" class="tab-content">
+                <section class="card" style="max-width: 800px; margin: 20px auto;">
+                    <h2 class="card-title">
+                      <i class="fa-solid fa-radar"></i> Smart Contract Scanner
+                    </h2>
+                    <p class="card-desc">Static analysis engine for Oracle Manipulation vulnerabilities.</p>
+
+                    <div class="two-col" style="align-items: center;">
+                        <div>
+                            <label class="label" for="fileUpload">Upload Source (.sol)</label>
+                            <input type="file" id="fileUpload" accept=".sol" class="input" style="padding: 8px;" />
+                        </div>
+                        <div>
+                            <div class="info-box" style="text-align: center; color: var(--text-muted); margin-bottom: 0;">
+                              <i class="fa-solid fa-microchip"></i> Static Analysis Mode
+                            </div>
+                        </div>
+                    </div>
+
+                    <label class="label" for="codeInput" style="margin-top: 20px;">Or Paste Solidity Code</label>
+                    <textarea id="codeInput" class="input" rows="12" placeholder="// Paste Solidity code here..." style="font-family: 'Roboto Mono', monospace; font-size: 0.9rem;"></textarea>
+
+                    <div class="two-col" style="gap: 12px; margin-top: 20px; margin-bottom: 24px;">
+                        <button id="scanBtn" class="btn btn-primary full-width" disabled style="margin-top: 0;">
+                            <i class="fa-solid fa-magnifying-glass"></i> Analyze Code
+                        </button>
+                        <button id="fixBtn" class="btn btn-success full-width" disabled style="margin-top: 0; background: linear-gradient(135deg, #10b981, #059669); filter: grayscale(100%); transition: all 0.3s ease;">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Fix Issues
+                        </button>
+                    </div>
+
+                    <div id="scanResult" class="info-box" style="margin-top: 24px; display: none;">
+                        <div class="info-label">Audit Report</div>
+                        <div id="scanMessage" class="info-value" style="font-size: 0.95rem; line-height: 1.6;"></div>
+                    </div>
+
+                    <div id="fixResult" class="info-box" style="margin-top: 24px; display: none; border-color: var(--success);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div class="info-label" style="color: var(--success); margin-bottom: 0;">SUGGESTED FIXES APPLIED</div>
+                            <button id="copyFixBtn" class="btn btn-secondary" style="padding: 4px 12px; font-size: 0.8rem; height: auto;">
+                                <i class="fa-regular fa-copy"></i> Copy Code
+                            </button>
+                        </div>
+                        <textarea id="fixedCodeOutput" class="input" rows="12" readonly 
+                                  style="font-family: 'Roboto Mono', monospace; color: #a7f3d0; background: rgba(6, 78, 59, 0.3); border: 1px solid #059669;">
+                        </textarea>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <span><i class="fa-solid fa-shield-cat"></i> Blockchain Security Lab</span>
+            <span>v2.0.0 · Premium Edition</span>
+        </footer>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="scanner.js"></script>
+</body>
+</html>

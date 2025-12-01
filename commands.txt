@@ -1,5 +1,7 @@
-1) npx hardhat node
+npx hardhat node
 
-2) npx hardhat run scripts/deploy.js --network localhost
+npx hardhat compile
 
-3) npx http-server .
+npx hardhat run scripts/deploy.js --network localhost
+
+npx http-server .

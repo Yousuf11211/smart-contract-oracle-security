@@ -10,11 +10,15 @@ contract VictimContract {
 
     uint256 public collateralFactor = 75;
     mapping(address => uint256) public collateralBalance;
-    address public owner; // ADDED: Owner variable
+
+    // FIX 1: Track debt so users can't borrow infinite times
+    mapping(address => uint256) public borrowedBalance;
+
+    address public owner;
 
     constructor(address _oracle) payable {
         oracle = IOracle(_oracle);
-        owner = msg.sender; // Set deployer as owner (Defender)
+        owner = msg.sender;
     }
 
     modifier onlyOwner() {
@@ -22,7 +26,6 @@ contract VictimContract {
         _;
     }
 
-    // NOW PROTECTED: Only the Defender can set this.
     function setCollateralFactor(uint256 _factor) public onlyOwner {
         collateralFactor = _factor;
     }
@@ -35,12 +38,21 @@ contract VictimContract {
         uint256 goldPrice = oracle.getPrice();
         uint256 userCollateral = collateralBalance[msg.sender];
 
+        // Calculate max allowed borrow
         uint256 maxBorrow = (userCollateral * goldPrice * collateralFactor) / 100;
 
-        require(amountToBorrow <= maxBorrow, "Shortfall: Not enough collateral value!");
+        // FIX 2: Check limit against (Current Debt + New Loan)
+        uint256 currentDebt = borrowedBalance[msg.sender];
+        require(currentDebt + amountToBorrow <= maxBorrow, "Shortfall: Not enough collateral value!");
+
         require(address(this).balance >= amountToBorrow, "Bank is empty!");
 
-        payable(msg.sender).transfer(amountToBorrow);
+        // FIX 3: Update debt BEFORE sending money (Checks-Effects-Interactions)
+        borrowedBalance[msg.sender] += amountToBorrow;
+
+        // FIX 4: Use .call to support Smart Wallets
+        (bool success, ) = payable(msg.sender).call{value: amountToBorrow}("");
+        require(success, "Transfer failed");
     }
 
     receive() external payable {}

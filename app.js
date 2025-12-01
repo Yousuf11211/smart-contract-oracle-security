@@ -1,8 +1,7 @@
-// --- UPDATED ADDRESSES (PASTE FROM YOUR TERMINAL DEPLOYMENT) ---
+// --- UPDATED ADDRESSES (PASTE YOUR LATEST DEPLOYMENT ADDRESSES HERE) ---
 const VULNERABLE_ORACLE_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 const SECURE_ORACLE_ADDRESS     = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 
-// UPDATE 1: SEPARATE VICTIM ADDRESSES
 const VICTIM_VULN_ADDRESS       = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
 const VICTIM_SECURE_ADDRESS     = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
 
@@ -26,7 +25,8 @@ const victimAbi = [
   "function borrowETH(uint256 amount) public",
   "function setCollateralFactor(uint256 _factor) public",
   "function collateralFactor() public view returns (uint256)",
-  "function collateralBalance(address) public view returns (uint256)"
+  "function collateralBalance(address) public view returns (uint256)",
+  "function borrowedBalance(address) public view returns (uint256)"
 ];
 
 const attackerAbi = [
@@ -37,17 +37,14 @@ const attackerAbi = [
 function setChain(secure) {
     isSecureChain = secure;
     activeOracle = secure ? SECURE_ORACLE_ADDRESS : VULNERABLE_ORACLE_ADDRESS;
-
-    // UPDATE 2: DYNAMIC VICTIM SWITCHING
     activeVictim = secure ? VICTIM_SECURE_ADDRESS : VICTIM_VULN_ADDRESS;
-
     activeAttacker = secure ? ATTACKER_SECURE_ADDRESS : ATTACKER_VULN_ADDRESS;
 
     // Update UI Text
     document.getElementById("chainStatus").innerText = secure ? "Active: SECURE ORACLE" : "Active: VULNERABLE ORACLE";
     document.getElementById("chainStatus").style.color = secure ? "#4ade80" : "#fca5a5";
 
-    // Refresh data immediately to show the balance of the ACTIVE bank
+    // Refresh data immediately
     refreshData();
 }
 
@@ -56,19 +53,30 @@ async function connectWallet() {
     provider = new ethers.BrowserProvider(window.ethereum);
     signer = await provider.getSigner();
     const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-    currentAccount = accounts[0];
 
-    document.getElementById("connectBtn").innerText = "Connected: " + currentAccount.slice(0,6);
+    handleAccountChange(accounts[0]);
+
+    // Setup Listener for Account Switching (FIX FOR STALE ACCOUNTS)
+    window.ethereum.on('accountsChanged', (accounts) => {
+        handleAccountChange(accounts[0]);
+    });
 
     // Default to Vulnerable Chain on load
     setChain(false);
+}
+
+async function handleAccountChange(newAccount) {
+    currentAccount = newAccount;
+    document.getElementById("connectBtn").innerText = "Connected: " + currentAccount.slice(0,6);
+    // Re-initialize signer for the new account
+    signer = await provider.getSigner();
+    refreshData();
 }
 
 // --- READ DATA ---
 async function loadVictimETHBalance() {
     if (!provider || !activeVictim) return;
     try {
-        // UPDATE 3: Read balance from the ACTIVE victim, not a hardcoded one
         const balanceWei = await provider.getBalance(activeVictim);
         const balanceEth = ethers.formatEther(balanceWei);
         document.getElementById("victimEthBalance").innerText = parseFloat(balanceEth).toFixed(2) + " ETH";
@@ -82,7 +90,7 @@ async function refreshData() {
     const oracle = new ethers.Contract(activeOracle, oracleAbi, provider);
     const victim = new ethers.Contract(activeVictim, victimAbi, provider);
 
-    await loadVictimETHBalance(); // Update Bank Balance
+    await loadVictimETHBalance();
 
     // 1. Get Price
     try {
@@ -96,59 +104,47 @@ async function refreshData() {
     try {
         const factor = await victim.collateralFactor();
         document.getElementById("currentFactorDisplay").innerText = factor.toString() + "%";
-    } catch (e) {
-        console.log("Could not fetch factor (maybe contract not deployed?)");
-    }
+    } catch (e) { console.log("Error fetching factor"); }
 
     // 3. Get Your Collateral Balance
     try {
         const myCollat = await victim.collateralBalance(currentAccount);
         document.getElementById("userCollateral").innerText = myCollat.toString() + " Gold";
-    } catch (e) {
-        console.log("Could not fetch collateral balance");
-    }
+    } catch (e) { console.log("Error fetching collateral"); }
+
+    // 4. Get Your Current Debt
+    try {
+        const myDebtWei = await victim.borrowedBalance(currentAccount);
+        const myDebtEth = ethers.formatEther(myDebtWei);
+        document.getElementById("userDebt").innerText = parseFloat(myDebtEth).toFixed(2) + " ETH";
+    } catch (e) { console.log("Error fetching debt"); }
 }
 
 // --- WRITE FUNCTIONS ---
 
-// 1. Fund the Bank
 async function fundBank() {
     if (!signer) return alert("Please connect wallet first.");
     const amount = document.getElementById("depositEthInput").value;
     if (!amount) return alert("Enter an amount to fund.");
-
     try {
-        // UPDATE 4: Fund the ACTIVE victim
-        const tx = await signer.sendTransaction({
-            to: activeVictim,
-            value: ethers.parseEther(amount)
-        });
+        const tx = await signer.sendTransaction({ to: activeVictim, value: ethers.parseEther(amount) });
         await tx.wait();
         refreshData();
         alert("Bank successfully funded!");
-    } catch (e) {
-        console.error(e);
-        alert("Funding failed. Check console.");
-    }
+    } catch (e) { console.error(e); alert("Funding failed."); }
 }
 
-// 2. Defender: Set the Safety Dial
 async function updateSafetyDial() {
     const victim = new ethers.Contract(activeVictim, victimAbi, signer);
     const newFactor = document.getElementById("safetyDialInput").value;
-
     try {
         const tx = await victim.setCollateralFactor(newFactor);
         await tx.wait();
         alert("Safety Factor Updated!");
         refreshData();
-    } catch (err) {
-        console.error(err);
-        alert("Update Failed (Are you the owner?)");
-    }
+    } catch (err) { console.error(err); alert("Update Failed (Are you the owner?)"); }
 }
 
-// 3. User: Deposit Collateral
 async function depositCollateral() {
     const victim = new ethers.Contract(activeVictim, victimAbi, signer);
     try {
@@ -158,11 +154,9 @@ async function depositCollateral() {
     } catch (err) { console.error(err); alert("Deposit Failed"); }
 }
 
-// 4. Attacker: Set Oracle Price
 async function manipulateOracle() {
     const oracle = new ethers.Contract(activeOracle, oracleAbi, signer);
     const fakePrice = ethers.parseEther(document.getElementById("fakePriceInput").value);
-
     try {
         const tx = await oracle.setPrice(fakePrice);
         await tx.wait();
@@ -174,62 +168,41 @@ async function manipulateOracle() {
     }
 }
 
-// 5. Attacker: The Atomic Flash Loan
-// 5. Attacker: The Atomic Flash Loan (SMARTER VERSION)
 async function runFlashAttack() {
     const attacker = new ethers.Contract(activeAttacker, attackerAbi, signer);
-
-    // 1. Check Bank Balance BEFORE the attack
     const balanceBefore = await provider.getBalance(activeVictim);
-
     try {
-        // GAS FIX: We manually set gasLimit to ensure complex transaction passes
         const tx = await attacker.flashAttack({ gasLimit: 30000000 });
-        await tx.wait(); // Wait for the blockchain to process it
-
-        // 2. Check Bank Balance AFTER the attack
+        await tx.wait();
         const balanceAfter = await provider.getBalance(activeVictim);
-
         refreshData();
-
-        // 3. COMPARE: Did the money actually move?
-        // We use a small threshold (0.01 ETH) to account for dust,
-        // but generally, if it was 50 and is now 0, the logic holds.
         const moneyWasStolen = (balanceBefore > 0n) && (balanceAfter < balanceBefore);
-
         if (moneyWasStolen) {
             alert("BOOM! Flash Loan Attack Executed. Bank Drained.");
         } else {
-            // If we are here, the transaction didn't revert, but the money didn't move.
-            // This happens on the Secure Chain because the logic blocked the price change internally.
             alert("Attack Executed but FAILED to drain funds! (Secure Oracle did its job).");
         }
-
     } catch (err) {
         console.error(err);
-
-        // This block catches if the transaction REVERTS (crashes) entirely
         if (isSecureChain) {
             alert("Attack BLOCKED! The transaction reverted (Secure Oracle rejected the price change).");
         } else {
-            alert("Attack FAILED! (Check console: Bank might be empty, or Gas too low).");
+            alert("Attack FAILED! (Check console).");
         }
     }
 }
-// --- NEW MANUAL LAB FUNCTIONS ---
 
-// Step 2 Shortcut: Pump Price to 1000
+// --- MANUAL LAB FUNCTIONS ---
 async function manualPump() {
     document.getElementById("fakePriceInput").value = "1000";
     await manipulateOracle();
 }
 
-// Step 3 Logic: Drain Bank (Borrow Max)
+// Replace your existing manualDrain function with this:
 async function manualDrain() {
     if (!signer) return alert("Connect Wallet!");
     const victim = new ethers.Contract(activeVictim, victimAbi, signer);
 
-    // UPDATE 5: Check balance of the ACTIVE victim
     const bankBalance = await provider.getBalance(activeVictim);
     const readableBalance = ethers.formatEther(bankBalance);
 
@@ -242,11 +215,16 @@ async function manualDrain() {
         alert(`Successfully drained ${readableBalance} ETH!`);
     } catch (err) {
         console.error(err);
-        alert("Drain Failed! (Did you deposit gold? Is the price pumped?)");
+
+        // FIX: Try to extract the actual error message from the contract
+        let reason = "Unknown Error";
+        if (err.reason) reason = err.reason;
+        else if (err.info && err.info.error && err.info.error.message) reason = err.info.error.message;
+
+        // This will now show: "Shortfall: Not enough collateral value!"
+        alert("Transaction Failed: " + reason);
     }
 }
-
-// --- INIT ---
 window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("connectBtn").onclick = connectWallet;
     document.getElementById("depositBtn").onclick = depositCollateral;
@@ -255,8 +233,6 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("attackBtn").onclick = runFlashAttack;
     document.getElementById("chainToggle").onclick = () => setChain(!isSecureChain);
     document.getElementById("fundBankBtn").onclick = fundBank;
-
-    // NEW LISTENERS FOR MANUAL LAB
     document.getElementById("manualDepositBtn").onclick = depositCollateral;
     document.getElementById("manualManipulateBtn").onclick = manualPump;
     document.getElementById("manualBorrowBtn").onclick = manualDrain;

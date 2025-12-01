@@ -154,6 +154,32 @@ async function depositCollateral() {
     } catch (err) { console.error(err); alert("Deposit Failed"); }
 }
 
+// --- NEW FUNCTION: Custom Borrow ---
+async function borrowCustomAmount() {
+    if (!signer) return alert("Connect Wallet!");
+    const amount = document.getElementById("borrowInput").value;
+    if (!amount) return alert("Enter amount to borrow");
+
+    const victim = new ethers.Contract(activeVictim, victimAbi, signer);
+
+    try {
+        const tx = await victim.borrowETH(ethers.parseEther(amount));
+        await tx.wait();
+        refreshData();
+        alert(`Successfully borrowed ${amount} ETH!`);
+    } catch (err) {
+        console.error(err);
+
+        // Extract error reason
+        let reason = "Unknown Error";
+        if (err.reason) reason = err.reason;
+        else if (err.info && err.info.error && err.info.error.message) reason = err.info.error.message;
+
+        alert("Borrow Failed: " + reason);
+    }
+}
+// ------------------------------------
+
 async function manipulateOracle() {
     const oracle = new ethers.Contract(activeOracle, oracleAbi, signer);
     const fakePrice = ethers.parseEther(document.getElementById("fakePriceInput").value);
@@ -198,7 +224,6 @@ async function manualPump() {
     await manipulateOracle();
 }
 
-// Replace your existing manualDrain function with this:
 async function manualDrain() {
     if (!signer) return alert("Connect Wallet!");
     const victim = new ethers.Contract(activeVictim, victimAbi, signer);
@@ -225,6 +250,8 @@ async function manualDrain() {
         alert("Transaction Failed: " + reason);
     }
 }
+
+// --- INITIALIZATION ---
 window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("connectBtn").onclick = connectWallet;
     document.getElementById("depositBtn").onclick = depositCollateral;
@@ -233,7 +260,12 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("attackBtn").onclick = runFlashAttack;
     document.getElementById("chainToggle").onclick = () => setChain(!isSecureChain);
     document.getElementById("fundBankBtn").onclick = fundBank;
+
+    // Manual Lab Buttons
     document.getElementById("manualDepositBtn").onclick = depositCollateral;
     document.getElementById("manualManipulateBtn").onclick = manualPump;
     document.getElementById("manualBorrowBtn").onclick = manualDrain;
+
+    // NEW: Custom Borrow Button Listener
+    document.getElementById("customBorrowBtn").onclick = borrowCustomAmount;
 });

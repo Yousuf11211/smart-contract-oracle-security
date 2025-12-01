@@ -1,8 +1,11 @@
-// --- PASTE YOUR NEW LOCALHOST ADDRESSES HERE ---
+// --- UPDATED ADDRESSES (From your latest deployment) ---
 const VULNERABLE_ORACLE_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 const SECURE_ORACLE_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 const VICTIM_CONTRACT_ADDRESS = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
-const ATTACKER_CONTRACT_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
+
+// NEW: Two separate attacker contracts
+const ATTACKER_VULN_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
+const ATTACKER_SECURE_ADDRESS = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707";
 
 // --- GLOBAL STATE ---
 let provider, signer, currentAccount;
@@ -33,7 +36,9 @@ function setChain(secure) {
     isSecureChain = secure;
     activeOracle = secure ? SECURE_ORACLE_ADDRESS : VULNERABLE_ORACLE_ADDRESS;
     activeVictim = VICTIM_CONTRACT_ADDRESS;
-    activeAttacker = ATTACKER_CONTRACT_ADDRESS;
+
+    // CRITICAL FIX: Switch the weapon based on the mode
+    activeAttacker = secure ? ATTACKER_SECURE_ADDRESS : ATTACKER_VULN_ADDRESS;
 
     // Update UI Text
     document.getElementById("chainStatus").innerText = secure ? "Active: SECURE ORACLE" : "Active: VULNERABLE ORACLE";
@@ -152,11 +157,22 @@ async function manipulateOracle() {
 async function runFlashAttack() {
     const attacker = new ethers.Contract(activeAttacker, attackerAbi, signer);
     try {
-        const tx = await attacker.flashAttack();
+        // GAS FIX: We manually set gasLimit to ensure complex transaction passes
+        const tx = await attacker.flashAttack({ gasLimit: 30000000 });
         await tx.wait();
-        alert("BOOM! Flash Loan Attack Executed. Bank Drained.");
+
         refreshData();
-    } catch (err) { console.error(err); alert("Attack Failed."); }
+        alert("BOOM! Flash Loan Attack Executed. Bank Drained.");
+    } catch (err) {
+        console.error(err);
+
+        // SMARTER ALERT: Check which chain we are on
+        if (isSecureChain) {
+            alert("Attack BLOCKED! (This is good - Secure Oracle rejected the manipulation).");
+        } else {
+            alert("Attack FAILED! (Check console: Bank might be empty, or Gas too low).");
+        }
+    }
 }
 
 // --- NEW MANUAL LAB FUNCTIONS ---

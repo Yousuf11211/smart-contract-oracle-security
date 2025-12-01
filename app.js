@@ -1,11 +1,13 @@
-// --- UPDATED ADDRESSES (From your latest deployment) ---
+// --- UPDATED ADDRESSES (PASTE FROM YOUR TERMINAL DEPLOYMENT) ---
 const VULNERABLE_ORACLE_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-const SECURE_ORACLE_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
-const VICTIM_CONTRACT_ADDRESS = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
+const SECURE_ORACLE_ADDRESS     = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 
-// NEW: Two separate attacker contracts
-const ATTACKER_VULN_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
-const ATTACKER_SECURE_ADDRESS = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707";
+// UPDATE 1: SEPARATE VICTIM ADDRESSES
+const VICTIM_VULN_ADDRESS       = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
+const VICTIM_SECURE_ADDRESS     = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
+
+const ATTACKER_VULN_ADDRESS     = "0x0165878A594ca255338adfa4d48449f69242Eb8F";
+const ATTACKER_SECURE_ADDRESS   = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853";
 
 // --- GLOBAL STATE ---
 let provider, signer, currentAccount;
@@ -35,14 +37,17 @@ const attackerAbi = [
 function setChain(secure) {
     isSecureChain = secure;
     activeOracle = secure ? SECURE_ORACLE_ADDRESS : VULNERABLE_ORACLE_ADDRESS;
-    activeVictim = VICTIM_CONTRACT_ADDRESS;
 
-    // CRITICAL FIX: Switch the weapon based on the mode
+    // UPDATE 2: DYNAMIC VICTIM SWITCHING
+    activeVictim = secure ? VICTIM_SECURE_ADDRESS : VICTIM_VULN_ADDRESS;
+
     activeAttacker = secure ? ATTACKER_SECURE_ADDRESS : ATTACKER_VULN_ADDRESS;
 
     // Update UI Text
     document.getElementById("chainStatus").innerText = secure ? "Active: SECURE ORACLE" : "Active: VULNERABLE ORACLE";
     document.getElementById("chainStatus").style.color = secure ? "#4ade80" : "#fca5a5";
+
+    // Refresh data immediately to show the balance of the ACTIVE bank
     refreshData();
 }
 
@@ -54,14 +59,17 @@ async function connectWallet() {
     currentAccount = accounts[0];
 
     document.getElementById("connectBtn").innerText = "Connected: " + currentAccount.slice(0,6);
-    setChain(false); // Start on Vulnerable Chain
+
+    // Default to Vulnerable Chain on load
+    setChain(false);
 }
 
 // --- READ DATA ---
 async function loadVictimETHBalance() {
-    if (!provider) return;
+    if (!provider || !activeVictim) return;
     try {
-        const balanceWei = await provider.getBalance(VICTIM_CONTRACT_ADDRESS);
+        // UPDATE 3: Read balance from the ACTIVE victim, not a hardcoded one
+        const balanceWei = await provider.getBalance(activeVictim);
         const balanceEth = ethers.formatEther(balanceWei);
         document.getElementById("victimEthBalance").innerText = parseFloat(balanceEth).toFixed(2) + " ETH";
     } catch (error) {
@@ -77,16 +85,28 @@ async function refreshData() {
     await loadVictimETHBalance(); // Update Bank Balance
 
     // 1. Get Price
-    const price = await oracle.getPrice();
-    document.getElementById("oraclePrice").innerText = ethers.formatEther(price) + " ETH";
+    try {
+        const price = await oracle.getPrice();
+        document.getElementById("oraclePrice").innerText = ethers.formatEther(price) + " ETH";
+    } catch (e) {
+        document.getElementById("oraclePrice").innerText = "Error";
+    }
 
     // 2. Get Collateral Factor
-    const factor = await victim.collateralFactor();
-    document.getElementById("currentFactorDisplay").innerText = factor.toString() + "%";
+    try {
+        const factor = await victim.collateralFactor();
+        document.getElementById("currentFactorDisplay").innerText = factor.toString() + "%";
+    } catch (e) {
+        console.log("Could not fetch factor (maybe contract not deployed?)");
+    }
 
     // 3. Get Your Collateral Balance
-    const myCollat = await victim.collateralBalance(currentAccount);
-    document.getElementById("userCollateral").innerText = myCollat.toString() + " Gold";
+    try {
+        const myCollat = await victim.collateralBalance(currentAccount);
+        document.getElementById("userCollateral").innerText = myCollat.toString() + " Gold";
+    } catch (e) {
+        console.log("Could not fetch collateral balance");
+    }
 }
 
 // --- WRITE FUNCTIONS ---
@@ -98,8 +118,9 @@ async function fundBank() {
     if (!amount) return alert("Enter an amount to fund.");
 
     try {
+        // UPDATE 4: Fund the ACTIVE victim
         const tx = await signer.sendTransaction({
-            to: VICTIM_CONTRACT_ADDRESS,
+            to: activeVictim,
             value: ethers.parseEther(amount)
         });
         await tx.wait();
@@ -154,27 +175,47 @@ async function manipulateOracle() {
 }
 
 // 5. Attacker: The Atomic Flash Loan
+// 5. Attacker: The Atomic Flash Loan (SMARTER VERSION)
 async function runFlashAttack() {
     const attacker = new ethers.Contract(activeAttacker, attackerAbi, signer);
+
+    // 1. Check Bank Balance BEFORE the attack
+    const balanceBefore = await provider.getBalance(activeVictim);
+
     try {
         // GAS FIX: We manually set gasLimit to ensure complex transaction passes
         const tx = await attacker.flashAttack({ gasLimit: 30000000 });
-        await tx.wait();
+        await tx.wait(); // Wait for the blockchain to process it
+
+        // 2. Check Bank Balance AFTER the attack
+        const balanceAfter = await provider.getBalance(activeVictim);
 
         refreshData();
-        alert("BOOM! Flash Loan Attack Executed. Bank Drained.");
+
+        // 3. COMPARE: Did the money actually move?
+        // We use a small threshold (0.01 ETH) to account for dust,
+        // but generally, if it was 50 and is now 0, the logic holds.
+        const moneyWasStolen = (balanceBefore > 0n) && (balanceAfter < balanceBefore);
+
+        if (moneyWasStolen) {
+            alert("BOOM! Flash Loan Attack Executed. Bank Drained.");
+        } else {
+            // If we are here, the transaction didn't revert, but the money didn't move.
+            // This happens on the Secure Chain because the logic blocked the price change internally.
+            alert("Attack Executed but FAILED to drain funds! (Secure Oracle did its job).");
+        }
+
     } catch (err) {
         console.error(err);
 
-        // SMARTER ALERT: Check which chain we are on
+        // This block catches if the transaction REVERTS (crashes) entirely
         if (isSecureChain) {
-            alert("Attack BLOCKED! (This is good - Secure Oracle rejected the manipulation).");
+            alert("Attack BLOCKED! The transaction reverted (Secure Oracle rejected the price change).");
         } else {
             alert("Attack FAILED! (Check console: Bank might be empty, or Gas too low).");
         }
     }
 }
-
 // --- NEW MANUAL LAB FUNCTIONS ---
 
 // Step 2 Shortcut: Pump Price to 1000
@@ -188,8 +229,8 @@ async function manualDrain() {
     if (!signer) return alert("Connect Wallet!");
     const victim = new ethers.Contract(activeVictim, victimAbi, signer);
 
-    // Check how much is in the bank
-    const bankBalance = await provider.getBalance(VICTIM_CONTRACT_ADDRESS);
+    // UPDATE 5: Check balance of the ACTIVE victim
+    const bankBalance = await provider.getBalance(activeVictim);
     const readableBalance = ethers.formatEther(bankBalance);
 
     if (parseFloat(readableBalance) === 0) return alert("Bank is already empty!");

@@ -1,6 +1,6 @@
 # 🛡️ Oracle Manipulation Security Lab
 
-> **Advanced Smart Contract Security Simulation Environment**  
+> **Advanced Smart Contract Security Simulation Environment**
 > An interactive educational platform demonstrating Oracle Manipulation attacks and defense mechanisms in DeFi protocols.
 
 ![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
@@ -715,9 +715,7 @@ This project contains intentionally vulnerable smart contracts designed for lear
 
 ## 📞 Contact & Support
 
-- **GitHub Issues**: [Report bugs](https://github.com/yourusername/smart-contract-oracle-security/issues)
-- **Discussions**: [Ask questions](https://github.com/yourusername/smart-contract-oracle-security/discussions)
-- **Twitter**: [@yourusername](https://twitter.com/yourusername)
+- **E-mail**: yousuffuddin2003@gmail.com
 
 ---
 
